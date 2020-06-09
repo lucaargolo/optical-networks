@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "opticalnetworks:block/drive_rack" },
+    "facing=south": { "model": "opticalnetworks:block/drive_rack", "y": 180 },
+    "facing=west":  { "model": "opticalnetworks:block/drive_rack", "y": 270 },
+    "facing=east":  { "model": "opticalnetworks:block/drive_rack", "y": 90 }
+  }
+}
