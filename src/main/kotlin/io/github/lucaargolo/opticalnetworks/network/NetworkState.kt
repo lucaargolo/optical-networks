@@ -1,6 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.network
 
-import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.mOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.basic.Cable
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRack
@@ -22,7 +22,7 @@ import net.minecraft.world.PersistentState
 import net.minecraft.world.World
 import java.util.*
 
-class NetworkState(): PersistentState(MOD_ID) {
+class NetworkState(): PersistentState(mOD_ID) {
 
     var networks = mutableListOf<Network>()
     var networksByPos = mutableMapOf<World, MutableMap<BlockPos, Network>>()
@@ -384,7 +384,7 @@ class NetworkState(): PersistentState(MOD_ID) {
 
     companion object {
         fun getNetworkState(world: ServerWorld): NetworkState {
-            return world.persistentStateManager.getOrCreate( {NetworkState()}, MOD_ID)
+            return world.persistentStateManager.getOrCreate( {NetworkState()}, mOD_ID)
         }
     }
 }

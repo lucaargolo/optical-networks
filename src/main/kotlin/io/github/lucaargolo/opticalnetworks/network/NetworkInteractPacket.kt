@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.network
 
-import io.github.lucaargolo.opticalnetworks.MOD_ID
-import io.github.lucaargolo.opticalnetworks.UPDATE_CURSOR_SLOT
+import io.github.lucaargolo.opticalnetworks.mOD_ID
+import io.github.lucaargolo.opticalnetworks.uPDATE_CURSOR_SLOT
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.PacketContext
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
@@ -11,11 +11,11 @@ import net.minecraft.network.PacketByteBuf
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.Identifier
 
-val NETWORK_INTERACT = Identifier(MOD_ID, "network_interact")
+val nETWORK_INTERACT = Identifier(mOD_ID, "network_interact")
 
 fun initNetworkInteractPacket() {
 
-    ServerSidePacketRegistry.INSTANCE.register(NETWORK_INTERACT) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+    ServerSidePacketRegistry.INSTANCE.register(nETWORK_INTERACT) { packetContext: PacketContext, attachedData: PacketByteBuf ->
 
         val player = packetContext.player
         val playerInventory = player.inventory
@@ -46,7 +46,7 @@ private fun updateCursorStack(playerInventory: PlayerInventory, stack: ItemStack
     val passedData = PacketByteBuf(Unpooled.buffer())
     passedData.writeItemStack(stack)
     playerInventory.cursorStack = stack
-    ServerSidePacketRegistry.INSTANCE.sendToPlayer(playerInventory.player, UPDATE_CURSOR_SLOT, passedData)
+    ServerSidePacketRegistry.INSTANCE.sendToPlayer(playerInventory.player, uPDATE_CURSOR_SLOT, passedData)
 }
 
 private fun executeMouseClicker(stack: ItemStack, playerInventory: PlayerInventory, shift: Boolean, network: NetworkState.Network, button: Int) {

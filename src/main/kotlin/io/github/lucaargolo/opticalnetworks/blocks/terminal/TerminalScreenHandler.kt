@@ -17,7 +17,8 @@ class TerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, val n
     val terminalSlots = mutableListOf<TerminalSlot>()
 
     init {
-        val i = 18 * 1
+        //aqui amado tem q colocar o valor inicial certo pra sincronizar taok
+        val i = 18 * 3
 
         (0..6).forEach { n ->
             (0..8).forEach { m ->

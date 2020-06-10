@@ -1,7 +1,8 @@
 package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
-import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT
+import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
+import io.github.lucaargolo.opticalnetworks.network.nETWORK_INTERACT
 import io.github.lucaargolo.opticalnetworks.utils.EnumButtonWidget
 import io.github.lucaargolo.opticalnetworks.utils.ScrollButtonWidget
 import io.netty.buffer.Unpooled
@@ -23,18 +24,30 @@ import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
+import net.minecraft.util.registry.Registry
 
 class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory, title: Text): HandledScreen<TerminalScreenHandler>(handler, inventory, title) {
 
-    enum class Size(val row: Int, val texture: Identifier?, val x: Int, val y: Int) {
-        SMALL(5, Identifier("opticalnetworks:textures/gui/terminal_small.png"), 193, 203),
-        MEDIUM(7, Identifier("opticalnetworks:textures/gui/terminal_normal.png"), 193, 239);
-        //LARGE(15, Identifier("opticalnetworks:textures/gui/terminal_tall.png"), 193, 300)
-
-        val automatic: Boolean = (texture != null)
+    enum class Size(var rows: Int, val texture: Identifier?, var x: Int, var y: Int) {
+        SHORT(3, Identifier("opticalnetworks:textures/gui/terminal_short.png"), 193, 167),
+        REGULAR(5, Identifier("opticalnetworks:textures/gui/terminal_normal.png"), 193, 203),
+        TALL(7, Identifier("opticalnetworks:textures/gui/terminal_tall.png"), 193, 239),
+        AUTOMATIC(0, Identifier("opticalnetworks:textures/gui/terminal_tall.png"), 193, 0)
     }
 
-    private var size = Size.MEDIUM
+    enum class Sort {
+        NAME,
+        QUANTITY,
+        ID
+        //INVTWEAKS
+    }
+
+    enum class SortDirection {
+        ASCENDING,
+        DESCENDING
+    }
+
+    private var size = Size.TALL
     private var scrollPages = 1
     private var scrollOffset = 0
     private var scrollable = false
@@ -43,6 +56,8 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
     private var scrollButton: ScrollButtonWidget? = null
 
     private var sizeButton: EnumButtonWidget<Size>? = null
+    private var sortButton: EnumButtonWidget<Sort>? = null
+    private var sortDirectionButton: EnumButtonWidget<SortDirection>? = null
 
     private var searchBox: TextFieldWidget? = null
 
@@ -57,10 +72,43 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
     override fun init() {
         super.init()
+
+        if(size == Size.AUTOMATIC) {
+            size.rows = (height-144)/18
+            if(size.rows < 3) size.rows = 3
+            size.y = 113+(18*size.rows)
+        }
+
         bWidth = size.x
         bHeight = size.y
         x = (width - bWidth) / 2
         y = (height - bHeight) / 2
+
+        val slotIterator = handler.slots.iterator()
+        while(slotIterator.hasNext()) {
+            val slot = slotIterator.next()
+            when(slot.id) {
+                in (0..26) -> (slot as SlotMixin).setY(103 + (slot.id/9) * 18 + 18*(size.rows-4))
+                else -> (slot as SlotMixin).setY(161 + 18*(size.rows-4))
+            }
+        }
+
+        if(handler.terminalSlots.size > size.rows*9) {
+            val it = handler.terminalSlots.iterator()
+            var index = 0
+            while(it.hasNext()) {
+                it.next()
+                if(index >= size.rows*9) it.remove()
+                index++
+            }
+        }
+
+        if(handler.terminalSlots.size < size.rows*9) {
+            val i = 18 + 18 * handler.terminalSlots.size/9
+            (0 until size.rows*9-handler.terminalSlots.size).forEach {
+                handler.terminalSlots.add(TerminalSlot(8 + (it-((it/9)*9))*18, (it/9)*18 + i))
+            }
+        }
 
         searchBox = TextFieldWidget(textRenderer, x+81, y+5, 80, 9, TranslatableText("itemGroup.search"))
         searchBox!!.setMaxLength(50)
@@ -68,8 +116,18 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         searchBox!!.setEditableColor(16777215)
         this.addChild(searchBox)
 
-        sizeButton = EnumButtonWidget(x-18, y + 4, ButtonWidget.PressAction {sizeButton?.change()}, size, Size.values(), Size.MEDIUM.texture!!, 193, 0)
+        sizeButton = EnumButtonWidget(x-18, y + 4, ButtonWidget.PressAction {
+            sizeButton?.change()
+            if(sizeButton != null && sizeButton!!.state != size) size = sizeButton!!.state
+            init(client, width, height)
+        }, size, Size.values(), Size.TALL.texture!!, 193, 0)
         this.addButton(sizeButton)
+
+        sortButton = EnumButtonWidget(x-18, y + 22, ButtonWidget.PressAction {sortButton?.change()}, Sort.NAME, Sort.values(), Size.TALL.texture, 193, 16)
+        this.addButton(sortButton)
+
+        sortDirectionButton = EnumButtonWidget(x-18, y + 40, ButtonWidget.PressAction {sortDirectionButton?.change()}, SortDirection.ASCENDING, SortDirection.values(), Size.TALL.texture, 193, 32)
+        this.addButton(sortDirectionButton)
 
         scrollOffset = y + 18
         scrollButton = ScrollButtonWidget(x+175, y + 18, ButtonWidget.PressAction{})
@@ -89,35 +147,8 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         searchBox!!.text = string
     }
 
-    override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
-        if (sizeButton != null && sizeButton!!.state != size) {
-            size = sizeButton!!.state
-            init(client, width, height)
-            if(handler.terminalSlots.size > size.row*9) {
-                val it = handler.terminalSlots.iterator()
-                var index = 0
-                while(it.hasNext()) {
-                    it.next()
-                    if(index >= size.row*9) {
-                        it.remove()
-                    }
-                    index++
-                }
-            }
-            if(handler.terminalSlots.size < size.row*9) {
-                val i = 18 + 18 * handler.terminalSlots.size/9
-                    (0 until size.row*9-handler.terminalSlots.size).forEach {
-                    var m = it
-                    var n = 0
-                    while(m/9 > 0) {
-                        n++
-                        m -= 9
-                    }
-                    handler.terminalSlots.add(TerminalSlot(8 + m * 18, n * 18 + i))
-                }
-            }
-        }
 
+    override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         this.renderBackground(matrices)
         super.render(matrices, mouseX, mouseY, delta)
 
@@ -137,15 +168,24 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
         val allStacks = handler.network.searchStacks(searchBox?.text ?: "")
 
-        activeSlots = allStacks.size
-        scrollable = activeSlots/9f > (size.row).toFloat()
-        scrollPages = (MathHelper.ceil(activeSlots/9f) - size.row)
+        var sortedStacks = when(sortButton?.state) {
+            Sort.NAME -> allStacks.sortedBy { TranslatableText(it.translationKey).toString() }
+            Sort.QUANTITY -> allStacks.sortedBy { it.count }.reversed()
+            Sort.ID -> allStacks.sortedBy { Registry.ITEM.getRawId(it.item) }
+            else -> allStacks
+        }
+
+        if(sortDirectionButton?.state == SortDirection.DESCENDING) sortedStacks = sortedStacks.reversed()
+
+        activeSlots = sortedStacks.size
+        scrollable = activeSlots/9f > (size.rows).toFloat()
+        scrollPages = (MathHelper.ceil(activeSlots/9f) - size.rows)
 
         val scrollPage = getScrollPage()
 
         var index = 0
         var indexPage = 0
-        allStacks.forEach {
+        sortedStacks.forEach {
             if(indexPage >= 9*scrollPage) {
                 val slot = handler.terminalSlots.getOrNull(index)
                 if(slot != null) {
@@ -177,7 +217,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
     override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
         return if (isScrolling) {
-            scrollOffset = MathHelper.clamp(mouseY.toInt(), y+18, y+(size.row*18)+1)
+            scrollOffset = MathHelper.clamp(mouseY.toInt(), y+18, y+(size.rows*18)+1)
             true
         } else {
             super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
@@ -185,7 +225,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
     }
 
     private fun getScrollPage(): Int {
-        val scrollPercentage = (scrollOffset-(y+18)).toFloat()/(y+(size.row*18)+1-(y+18)).toFloat()
+        val scrollPercentage = (scrollOffset-(y+18)).toFloat()/(y+(size.rows*18)+1-(y+18)).toFloat()
         return (scrollPercentage/(1f/ scrollPages)).toInt()
     }
 
@@ -194,12 +234,12 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         if(amount > 0) {
             if(scrollPage > 0) {
                 val desiredPercentage = (scrollPage-1f)/scrollPages
-                scrollOffset = MathHelper.ceil((desiredPercentage*(y+(size.row*18)+1-(y+18)) + (y+18)))
+                scrollOffset = MathHelper.ceil((desiredPercentage*(y+(size.rows*18)+1-(y+18)) + (y+18)))
             }
         }else{
             if(scrollPage < scrollPages) {
                 val desiredPercentage = (scrollPage+1f)/scrollPages
-                scrollOffset = MathHelper.ceil(desiredPercentage*(y+(size.row*18)+1-(y+18)) + (y+18))
+                scrollOffset = MathHelper.ceil(desiredPercentage*(y+(size.rows*18)+1-(y+18)) + (y+18))
             }
         }
         return super.mouseScrolled(mouseX, mouseY, amount)
@@ -217,7 +257,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
             val placeholderStack = hoverTerminalSlot!!.item.copy()
             if (placeholderStack.count > placeholderStack.maxCount) placeholderStack.count = placeholderStack.maxCount
             passedData.writeItemStack(placeholderStack)
-            ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT, passedData)
+            ClientSidePacketRegistry.INSTANCE.sendToServer(nETWORK_INTERACT, passedData)
         }
         return super.mouseClicked(mouseX, mouseY, button)
     }
@@ -266,11 +306,20 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
     override fun drawBackground(matrices: MatrixStack?, delta: Float, mouseX: Int, mouseY: Int) {
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
         client!!.textureManager.bindTexture(size.texture)
-        drawTexture(matrices, x, y, 0, 0, bWidth, bHeight)
+        if(size == Size.AUTOMATIC) {
+            drawTexture(matrices, x, y, 0, 0, 193, 35)
+            (0 until size.rows-2).forEach {
+                drawTexture(matrices, x, y+35+it*18, 0, 35, 193, 18)
+            }
+            drawTexture(matrices, x, y+35+(size.rows-2)*18, 0, 125, 193, 114)
+        }else{
+            drawTexture(matrices, x, y, 0, 0, bWidth, bHeight)
+        }
+
     }
 
     override fun drawForeground(matrices: MatrixStack?, mouseX: Int, mouseY: Int) {
-        val i = (size.row-5)
+        val i = (size.rows-5)
         textRenderer.draw(matrices, title.string, 6f, 6f, 4210752)
         textRenderer.draw(matrices, playerInventory.displayName, 6f,  110f+(i*18), 4210752)
     }

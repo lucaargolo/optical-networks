@@ -1,6 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.blocks
 
-import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.mOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.basic.Cable
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
@@ -16,12 +16,12 @@ import net.minecraft.util.Identifier
 
 val blockRegistry = mutableMapOf<Identifier, ModBlock>()
 
-val CABLE = register(Identifier(MOD_ID, "cable"), ModBlock(Cable()))
+val CABLE = register(Identifier(mOD_ID, "cable"), ModBlock(Cable()))
 
-val CONTROLLER = register(Identifier(MOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller()))
-val DRIVE_RACK = register(Identifier(MOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), DriveRackScreenHandler::class, DriveRackScreen::class))
+val CONTROLLER = register(Identifier(mOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller()))
+val DRIVE_RACK = register(Identifier(mOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), DriveRackScreenHandler::class, DriveRackScreen::class))
 
-val TERMINAL = register(Identifier(MOD_ID, "terminal"), ModBlock(Terminal()))
+val TERMINAL = register(Identifier(mOD_ID, "terminal"), ModBlock(Terminal()))
 
 private fun register(identifier: Identifier, block: ModBlock): Block {
     blockRegistry[identifier] = block

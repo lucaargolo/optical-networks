@@ -14,21 +14,15 @@ import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
 import net.fabricmc.fabric.api.network.PacketContext
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
-import net.minecraft.block.entity.LockableContainerBlockEntity
-import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.screen.ScreenHandlerContext
-import net.minecraft.server.MinecraftServer
-import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
-import kotlin.reflect.full.primaryConstructor
 
-const val MOD_ID = "opticalnetworks"
-val UPDATE_CURSOR_SLOT = Identifier(MOD_ID, "update_cursor_slot")
+const val mOD_ID = "opticalnetworks"
+val uPDATE_CURSOR_SLOT = Identifier(mOD_ID, "update_cursor_slot")
 
 
 fun init() {
@@ -66,7 +60,7 @@ fun initClient() {
             ), playerEntity.inventory, LiteralText("Terminal")
         )
     }
-    ClientSidePacketRegistry.INSTANCE.register(UPDATE_CURSOR_SLOT) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+    ClientSidePacketRegistry.INSTANCE.register(uPDATE_CURSOR_SLOT) { packetContext: PacketContext, attachedData: PacketByteBuf ->
         val stack = attachedData.readItemStack()
         packetContext.taskQueue.execute {
             packetContext.player.inventory.cursorStack = stack

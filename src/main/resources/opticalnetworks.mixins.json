@@ -3,6 +3,7 @@
   "package": "io.github.lucaargolo.opticalnetworks.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "SlotMixin"
   ],
   "client": [
   ],
