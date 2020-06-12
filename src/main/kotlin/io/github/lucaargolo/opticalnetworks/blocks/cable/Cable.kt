@@ -1,4 +1,4 @@
-package io.github.lucaargolo.opticalnetworks.blocks.basic
+package io.github.lucaargolo.opticalnetworks.blocks.cable
 
 import io.github.lucaargolo.opticalnetworks.network.NetworkConnectable
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
@@ -13,7 +13,7 @@ import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 import net.minecraft.world.WorldAccess
 
-class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS)) {
+open class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS)) {
 
     init {
         defaultState = stateManager.defaultState
@@ -35,7 +35,7 @@ class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS)) {
         super.appendProperties(builder)
     }
 
-    override fun getPlacementState(ctx: ItemPlacementContext): BlockState? {
+    override fun getPlacementState(ctx: ItemPlacementContext): BlockState {
         return defaultState
             .with(ConnectingBlock.NORTH, ctx.world.getBlockState(ctx.blockPos.north()).block is NetworkConnectable)
             .with(ConnectingBlock.SOUTH, ctx.world.getBlockState(ctx.blockPos.south()).block is NetworkConnectable)
@@ -64,7 +64,7 @@ class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS)) {
         return getShape(state)
     }
 
-    private fun getShape(state: BlockState): VoxelShape {
+    open fun getShape(state: BlockState): VoxelShape {
         val shapeList = mutableListOf<VoxelShape>()
         if(state[Properties.NORTH]) shapeList.add(createCuboidShape(6.0, 6.0, 0.0, 10.0, 10.0, 6.0))
         if(state[Properties.SOUTH]) shapeList.add(createCuboidShape(6.0, 6.0, 10.0, 10.0, 10.0, 16.0))

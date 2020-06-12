@@ -1,6 +1,52 @@
 {
-  "parent": "block/cube_all",
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "down":  { "texture": "#all", "cullface": "down", "jmx_tex0": "#jmx_tex_all0", "jmx_material": "#jmx_mat_all" },
+        "up":    { "texture": "#all", "cullface": "up", "jmx_tex0": "#jmx_tex_all0",  "jmx_material": "#jmx_mat_all" },
+        "north": { "texture": "#all", "cullface": "north", "jmx_tex0": "#jmx_tex_all0",  "jmx_material": "#jmx_mat_all" },
+        "south": { "texture": "#all", "cullface": "south", "jmx_tex0": "#jmx_tex_all0", "jmx_material": "#jmx_mat_all" },
+        "west":  { "texture": "#all", "cullface": "west", "jmx_tex0": "#jmx_tex_all0",  "jmx_material": "#jmx_mat_all" },
+        "east":  { "texture": "#all", "cullface": "east", "jmx_tex0": "#jmx_tex_all0",  "jmx_material": "#jmx_mat_all" }
+      }
+    },
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "down":  { "texture": "#all1", "tintindex": 0, "cullface": "down", "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1" },
+        "up":    { "texture": "#all1", "tintindex": 0, "cullface": "up", "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1" },
+        "north": { "texture": "#all1", "tintindex": 0, "cullface": "north", "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1" },
+        "south": { "texture": "#all1", "tintindex": 0, "cullface": "south", "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1" },
+        "west":  { "texture": "#all1", "tintindex": 0, "cullface": "west", "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1" },
+        "east":  { "texture": "#all1", "tintindex": 0, "cullface": "east", "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1" }
+      }
+    }
+  ],
   "textures": {
-    "all": "opticalnetworks:block/controller"
+    "particle": "opticalnetworks:block/controller",
+    "all": "opticalnetworks:block/controller",
+    "all1": "opticalnetworks:block/controller_emissive"
+  },
+  "jmx": {
+    "textures": {
+      "particle": "opticalnetworks:block/controller",
+      "jmx_tex_all0": "opticalnetworks:block/controller",
+      "jmx_tex_all1": "opticalnetworks:block/controller_emissive"
+    },
+    "materials": {
+      "jmx_mat_all": {
+        "layer0": "cutout_mipped"
+      },
+      "jmx_mat_all1": {
+        "layer1": "translucent",
+        "emissive1": true,
+        "ambient_occlusion1": false,
+        "diffuse1": false
+      }
+    }
   }
 }

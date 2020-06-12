@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.items
 
 import com.mojang.datafixers.util.Pair
-import io.github.lucaargolo.opticalnetworks.mOD_ID
+import io.github.lucaargolo.opticalnetworks.MOD_ID
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry
@@ -82,7 +82,7 @@ open class ModItem(item: Item) {
                         playerEntity.inventory,
                         playerEntity.world,
                         packetByteBuf.readCompoundTag()
-                    ), playerEntity.inventory, TranslatableText("screen.${mOD_ID}.${identifier.path}")
+                    ), playerEntity.inventory, TranslatableText("screen.${MOD_ID}.${identifier.path}")
                 )
             }
         }

@@ -9,8 +9,19 @@
 			"from": [6, 6, 6],
 			"to": [10, 10, 6],
 			"faces": {
-				"north": {"uv": [0, 0, 4, 4], "texture": "#0"}
+				"north": {"uv": [0, 0, 4, 4], "texture": "#0", "jmx_tex0": "#0", "jmx_material":  "jmx_0"}
 			}
 		}
-	]
+	],
+	"jmx": {
+		"textures": {
+			"particle": "opticalnetworks:block/cable",
+			"0": "opticalnetworks:block/cable"
+		},
+		"materials": {
+			"jmx_0": {
+				"layer0": "translucent"
+			}
+		}
+	}
 }

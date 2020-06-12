@@ -1,17 +1,21 @@
 package io.github.lucaargolo.opticalnetworks.network
 
-import io.github.lucaargolo.opticalnetworks.mOD_ID
-import io.github.lucaargolo.opticalnetworks.blocks.basic.Cable
+import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.blocks.cable.Cable
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
+import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRack
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRackBlockEntity
 import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
+import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
+import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.minecraft.block.Block
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
+import net.minecraft.network.PacketByteBuf
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.state.property.Properties
 import net.minecraft.text.TranslatableText
@@ -20,9 +24,10 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.registry.Registry
 import net.minecraft.world.PersistentState
 import net.minecraft.world.World
+import java.awt.Color
 import java.util.*
 
-class NetworkState(): PersistentState(mOD_ID) {
+class NetworkState: PersistentState(MOD_ID) {
 
     var networks = mutableListOf<Network>()
     var networksByPos = mutableMapOf<World, MutableMap<BlockPos, Network>>()
@@ -85,6 +90,14 @@ class NetworkState(): PersistentState(mOD_ID) {
         }
         if(n.controller != null) {
             networks.add(n)
+            n.components.forEach { p ->
+                world.players.forEach { pl ->
+                    val passedData = PacketByteBuf(Unpooled.buffer())
+                    passedData.writeBlockPos(p)
+                    passedData.writeInt((world.getBlockEntity(n.controller) as ControllerBlockEntity).storedColor.rgb)
+                    ServerSidePacketRegistry.INSTANCE.sendToPlayer(pl, UPDATE_COLOR, passedData)
+                }
+            }
             return n;
         }else{
             return null;
@@ -171,10 +184,6 @@ class NetworkState(): PersistentState(mOD_ID) {
             state!!.updateNetwork(this)
         }
 
-        fun searchStacks(): MutableList<ItemStack> {
-            return searchStacks("")
-        }
-
         fun searchStacks(string: String): MutableList<ItemStack> {
             val itemMemory = mutableSetOf<Item>()
             val itemList = mutableListOf<ItemStack>()
@@ -212,6 +221,25 @@ class NetworkState(): PersistentState(mOD_ID) {
                 }
             }
             return itemList
+        }
+
+        fun updateColor() {
+            components.forEach { p ->
+                world.players.forEach { pl ->
+                    val passedData = PacketByteBuf(Unpooled.buffer())
+                    passedData.writeBlockPos(p)
+                    passedData.writeInt(getColor().rgb)
+                    ServerSidePacketRegistry.INSTANCE.sendToPlayer(pl, UPDATE_COLOR, passedData)
+                }
+            }
+        }
+
+        private fun getColor(): Color {
+            val be = controller?.let{ world.getBlockEntity(it) }
+            if(be is ControllerBlockEntity) {
+                return be.storedColor
+            }
+            return Color.BLACK
         }
 
         private fun getStorageByPriority(): List<DriveRackBlockEntity> {
@@ -276,7 +304,7 @@ class NetworkState(): PersistentState(mOD_ID) {
         fun insertStack(stack: ItemStack): ItemStack {
             getStorageByPriority().forEach {rackEntity ->
                 rackEntity.inventory.forEach {rackStack ->
-                    if(rackStack.item is DiscDrive) {
+                    if(rackStack.item is DiscDrive && !stack.isEmpty) {
                         val stackTag = rackStack.orCreateTag
                         if(!stackTag.contains("items")) {
                             val itemsTag = ListTag()
@@ -334,28 +362,10 @@ class NetworkState(): PersistentState(mOD_ID) {
             return ItemStack.areItemsEqual(left, right) && ItemStack.areTagsEqual(left, right)
         }
 
-        private fun getStackFromTag(tag: CompoundTag): ItemStack {
-            val dummyTag = tag.copy();
-            dummyTag.putByte("Count", 1)
-            val stack = ItemStack.fromTag(dummyTag)
-            stack.count = tag.getInt("Count")
-            return stack;
-        }
-
-        private fun getTagFromStack(stack: ItemStack): CompoundTag {
-            val tag = CompoundTag()
-            val identifier = Registry.ITEM.getId(stack.item)
-            tag.putString("id", identifier.toString())
-            tag.putInt("Count", stack.count)
-            if (stack.tag != null) {
-                tag.put("tag", stack.tag!!.copy())
-            }
-            return tag
-        }
-
         fun toTag(tag: CompoundTag): CompoundTag {
             val componentsTag = ListTag()
             tag.putUuid("id", id)
+            tag.putLong("controller", controller?.asLong() ?: 0L)
             componentsMap.forEach {
                 val componentTag = CompoundTag()
                 componentTag.putString("id", Registry.BLOCK.getId(it.value).toString())
@@ -370,6 +380,10 @@ class NetworkState(): PersistentState(mOD_ID) {
             components = mutableSetOf()
             componentsMap = mutableMapOf()
             id = tag.getUuid("id")
+            val controllerPos = BlockPos.fromLong(tag.getLong("controller"))
+            if(world.getBlockEntity(controllerPos) is ControllerBlockEntity) {
+                controller = controllerPos
+            }
             val componentsTag = tag.get("components") as ListTag
             componentsTag.forEach {
                 val itag = it as CompoundTag
@@ -384,7 +398,26 @@ class NetworkState(): PersistentState(mOD_ID) {
 
     companion object {
         fun getNetworkState(world: ServerWorld): NetworkState {
-            return world.persistentStateManager.getOrCreate( {NetworkState()}, mOD_ID)
+            return world.persistentStateManager.getOrCreate( {NetworkState()}, MOD_ID)
+        }
+
+        fun getStackFromTag(tag: CompoundTag): ItemStack {
+            val dummyTag = tag.copy();
+            dummyTag.putByte("Count", 1)
+            val stack = ItemStack.fromTag(dummyTag)
+            stack.count = tag.getInt("Count")
+            return stack;
+        }
+
+        fun getTagFromStack(stack: ItemStack): CompoundTag {
+            val tag = CompoundTag()
+            val identifier = Registry.ITEM.getId(stack.item)
+            tag.putString("id", identifier.toString())
+            tag.putInt("Count", stack.count)
+            if (stack.tag != null) {
+                tag.put("tag", stack.tag!!.copy())
+            }
+            return tag
         }
     }
 }

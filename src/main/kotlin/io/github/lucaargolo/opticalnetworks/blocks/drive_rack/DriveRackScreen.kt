@@ -17,7 +17,6 @@ class DriveRackScreen(handler: DriveRackScreenHandler, inventory: PlayerInventor
     override fun init() {
         super.init()
         backgroundHeight = 203
-        field_25270 = backgroundHeight - 94
         startX = width/2-backgroundWidth/2
         startY = height/2-backgroundHeight/2
     }

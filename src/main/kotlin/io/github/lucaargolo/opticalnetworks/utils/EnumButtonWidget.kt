@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
-import io.github.lucaargolo.opticalnetworks.mOD_ID
+import io.github.lucaargolo.opticalnetworks.MOD_ID
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawableHelper
 import net.minecraft.client.gui.widget.ButtonWidget
@@ -11,7 +11,7 @@ import net.minecraft.util.Identifier
 
 class EnumButtonWidget<T: Enum<T>>(x: Int, y: Int, action: PressAction, selectedEnum: T, private val array: Array<T>, private val texture: Identifier, private val u: Int, private val v: Int): ButtonWidget(x, y, 16, 16, LiteralText(""), action ) {
 
-    private val genericTexture: Identifier = Identifier(mOD_ID, "textures/gui/generic.png")
+    private val genericTexture: Identifier = Identifier(MOD_ID, "textures/gui/generic.png")
 
     private var selected = 0
 

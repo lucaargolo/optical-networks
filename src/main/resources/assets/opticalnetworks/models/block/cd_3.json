@@ -1,0 +1,17 @@
+{
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "opticalnetworks:block/drive_rack_extra"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [2, 1, 1],
+			"faces": {
+				"north": {"uv": [10, 1, 12, 2], "texture": "#0"},
+				"west": {"uv": [10, 1, 11, 2], "texture": "#0"},
+				"down": {"uv": [10, 1, 12, 2], "texture": "#0"}
+			}
+		}
+	]
+}

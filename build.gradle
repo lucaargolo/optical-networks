@@ -21,6 +21,14 @@ repositories {
         name = "Modmuss50"
         url = "https://maven.modmuss50.me/"
     }
+    maven {
+        name = "grondag"
+        url = "https://grondag-repo.appspot.com"
+        credentials {
+            username "guest"
+            password ""
+        }
+    }
 }
 
 dependencies {
@@ -37,7 +45,10 @@ dependencies {
     modImplementation "io.github.prospector:modmenu:${project.modmenu_version}"
     modImplementation "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
 
+    modImplementation("grondag:darkness-${project.mc_tag}:${project.darkness_version}.+") { transitive = false}
 
+    modImplementation ("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false}
+    include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
 }
 
 processResources {

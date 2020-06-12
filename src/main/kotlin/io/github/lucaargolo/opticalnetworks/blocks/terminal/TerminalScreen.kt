@@ -2,7 +2,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
-import io.github.lucaargolo.opticalnetworks.network.nETWORK_INTERACT
+import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT
 import io.github.lucaargolo.opticalnetworks.utils.EnumButtonWidget
 import io.github.lucaargolo.opticalnetworks.utils.ScrollButtonWidget
 import io.netty.buffer.Unpooled
@@ -22,6 +22,7 @@ import net.minecraft.network.PacketByteBuf
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
+import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.registry.Registry
@@ -110,7 +111,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
             }
         }
 
-        searchBox = TextFieldWidget(textRenderer, x+81, y+5, 80, 9, TranslatableText("itemGroup.search"))
+        searchBox = TextFieldWidget(textRenderer, x+81, y+5, 80, 9, LiteralText(""))
         searchBox!!.setMaxLength(50)
         searchBox!!.setHasBorder(false)
         searchBox!!.setEditableColor(16777215)
@@ -169,7 +170,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         val allStacks = handler.network.searchStacks(searchBox?.text ?: "")
 
         var sortedStacks = when(sortButton?.state) {
-            Sort.NAME -> allStacks.sortedBy { TranslatableText(it.translationKey).toString() }
+            Sort.NAME -> allStacks.sortedBy { TranslatableText(it.translationKey).string }
             Sort.QUANTITY -> allStacks.sortedBy { it.count }.reversed()
             Sort.ID -> allStacks.sortedBy { Registry.ITEM.getRawId(it.item) }
             else -> allStacks
@@ -257,7 +258,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
             val placeholderStack = hoverTerminalSlot!!.item.copy()
             if (placeholderStack.count > placeholderStack.maxCount) placeholderStack.count = placeholderStack.maxCount
             passedData.writeItemStack(placeholderStack)
-            ClientSidePacketRegistry.INSTANCE.sendToServer(nETWORK_INTERACT, passedData)
+            ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT, passedData)
         }
         return super.mouseClicked(mouseX, mouseY, button)
     }
@@ -282,7 +283,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         this.itemRenderer.zOffset = 100.0f
 
         RenderSystem.enableDepthTest()
-        this.itemRenderer.method_27951(this.client!!.player, slot.item, i, j)
+        this.itemRenderer.renderInGuiWithOverrides(this.client!!.player, slot.item, i, j)
 
         val string = slot.getCountString()
         val matrixStack = MatrixStack()
@@ -299,7 +300,11 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
         if(hoverTerminalSlot == slot) {
             DrawableHelper.fill(matrices, i, j, i + 16, j + 16, -2130706433)
-            if(playerInventory.cursorStack.isEmpty) renderTooltip(matrices, slot.item, mouseX, mouseY)
+            if(playerInventory.cursorStack.isEmpty) {
+                val tooltip = getTooltipFromItem(slot.item)
+                tooltip.add(1, LiteralText("${Formatting.GRAY}Stored: ${slot.count}"))
+                renderTooltip(matrices, tooltip, mouseX, mouseY)
+            }
         }
     }
 

@@ -1,21 +1,25 @@
 package io.github.lucaargolo.opticalnetworks.network
 
-import io.github.lucaargolo.opticalnetworks.mOD_ID
-import io.github.lucaargolo.opticalnetworks.uPDATE_CURSOR_SLOT
+import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.UPDATE_CURSOR_SLOT
+import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.PacketContext
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
+import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.server.world.ServerWorld
+import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
+import java.awt.Color
 
-val nETWORK_INTERACT = Identifier(mOD_ID, "network_interact")
+val NETWORK_INTERACT = Identifier(MOD_ID, "network_interact")
 
 fun initNetworkInteractPacket() {
 
-    ServerSidePacketRegistry.INSTANCE.register(nETWORK_INTERACT) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+    ServerSidePacketRegistry.INSTANCE.register(NETWORK_INTERACT) { packetContext: PacketContext, attachedData: PacketByteBuf ->
 
         val player = packetContext.player
         val playerInventory = player.inventory
@@ -36,6 +40,13 @@ fun initNetworkInteractPacket() {
                         executeMouseClicker(stack, playerInventory, shift, network, button)
                     }
                 }
+                2 -> {
+                    //change controller color
+                    val color = attachedData.readString()
+                    packetContext.taskQueue.execute {
+                        changeColor(color, player, network)
+                    }
+                }
             }
         }
     }
@@ -46,7 +57,30 @@ private fun updateCursorStack(playerInventory: PlayerInventory, stack: ItemStack
     val passedData = PacketByteBuf(Unpooled.buffer())
     passedData.writeItemStack(stack)
     playerInventory.cursorStack = stack
-    ServerSidePacketRegistry.INSTANCE.sendToPlayer(playerInventory.player, uPDATE_CURSOR_SLOT, passedData)
+    ServerSidePacketRegistry.INSTANCE.sendToPlayer(playerInventory.player, UPDATE_CURSOR_SLOT, passedData)
+}
+
+private fun changeColor(string: String, player: PlayerEntity, network: NetworkState.Network) {
+    var color: Color? = null
+    val args = string.split("\\s+")
+    try {
+        if (args.size == 1 && args[0].length == 6) {
+            color = Color.decode("#" + args[0].toUpperCase())
+        } else if (args.size == 3) {
+            color = Color(
+                Integer.valueOf(args[0]),
+                Integer.valueOf(args[1]),
+                Integer.valueOf(args[2])
+            )
+        }
+    } catch (ignored: Exception) {}
+    if(color == null) {
+        player.sendMessage(LiteralText("Could not parse color!"), false)
+    }else{
+        val be = network.controller?.let { player.world.getBlockEntity(it) }
+        if(be is ControllerBlockEntity) be.storedColor = color
+        network.updateColor()
+    }
 }
 
 private fun executeMouseClicker(stack: ItemStack, playerInventory: PlayerInventory, shift: Boolean, network: NetworkState.Network, button: Int) {
