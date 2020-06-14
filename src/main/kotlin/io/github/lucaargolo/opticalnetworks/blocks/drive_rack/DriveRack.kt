@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
-import io.github.lucaargolo.opticalnetworks.network.NetworkConnectableWithEntity
+import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectableWithEntity
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry

@@ -1,5 +1,7 @@
-package io.github.lucaargolo.opticalnetworks.network
+package io.github.lucaargolo.opticalnetworks.network.blocks
 
+import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.network.getNetworkState
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.LivingEntity
@@ -12,7 +14,7 @@ abstract class NetworkConnectable(settings: Settings): Block(settings) {
 
     override fun onPlaced(world: World, pos: BlockPos, state: BlockState, placer: LivingEntity?, itemStack: ItemStack) {
         if(world is ServerWorld) {
-            val networkState = NetworkState.getNetworkState(world)
+            val networkState = getNetworkState(world)
             networkState.updateBlock(world, pos)
             println("Current state: ")
             networkState.networks.forEach {
@@ -28,7 +30,7 @@ abstract class NetworkConnectable(settings: Settings): Block(settings) {
     override fun onStateReplaced(state: BlockState, world: World, pos: BlockPos, newState: BlockState, notify: Boolean) {
         if (!state.isOf(newState.block)) {
             if(world is ServerWorld) {
-                val networkState = NetworkState.getNetworkState(world)
+                val networkState = getNetworkState(world)
                 networkState.updateBlock(world, pos)
                 println("Current state: ")
                 networkState.networks.forEach {

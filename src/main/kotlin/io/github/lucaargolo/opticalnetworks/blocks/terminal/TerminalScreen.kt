@@ -2,11 +2,15 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
-import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT
+import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT_C2S_PACKET
+import io.github.lucaargolo.opticalnetworks.network.UPDATE_TERMINAL_CONFIG_C2S_PACKET
+import io.github.lucaargolo.opticalnetworks.network.UPDATE_TERMINAL_CONFIG_S2C_PACKET
+import io.github.lucaargolo.opticalnetworks.network.terminalConfig
 import io.github.lucaargolo.opticalnetworks.utils.EnumButtonWidget
 import io.github.lucaargolo.opticalnetworks.utils.ScrollButtonWidget
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
+import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawableHelper
 import net.minecraft.client.gui.screen.ingame.HandledScreen
@@ -18,37 +22,18 @@ import net.minecraft.client.util.InputUtil
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.PacketByteBuf
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
-import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.registry.Registry
 
 class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory, title: Text): HandledScreen<TerminalScreenHandler>(handler, inventory, title) {
 
-    enum class Size(var rows: Int, val texture: Identifier?, var x: Int, var y: Int) {
-        SHORT(3, Identifier("opticalnetworks:textures/gui/terminal_short.png"), 193, 167),
-        REGULAR(5, Identifier("opticalnetworks:textures/gui/terminal_normal.png"), 193, 203),
-        TALL(7, Identifier("opticalnetworks:textures/gui/terminal_tall.png"), 193, 239),
-        AUTOMATIC(0, Identifier("opticalnetworks:textures/gui/terminal_tall.png"), 193, 0)
-    }
-
-    enum class Sort {
-        NAME,
-        QUANTITY,
-        ID
-        //INVTWEAKS
-    }
-
-    enum class SortDirection {
-        ASCENDING,
-        DESCENDING
-    }
-
-    private var size = Size.TALL
     private var scrollPages = 1
     private var scrollOffset = 0
     private var scrollable = false
@@ -56,9 +41,9 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
     private var activeSlots = 0
     private var scrollButton: ScrollButtonWidget? = null
 
-    private var sizeButton: EnumButtonWidget<Size>? = null
-    private var sortButton: EnumButtonWidget<Sort>? = null
-    private var sortDirectionButton: EnumButtonWidget<SortDirection>? = null
+    private var sizeButton: EnumButtonWidget<TerminalConfig.Size>? = null
+    private var sortButton: EnumButtonWidget<TerminalConfig.Sort>? = null
+    private var sortDirectionButton: EnumButtonWidget<TerminalConfig.SortDirection>? = null
 
     private var searchBox: TextFieldWidget? = null
 
@@ -71,17 +56,23 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         searchBox?.tick()
     }
 
+    fun updateTerminalConfig() {
+        val passedData = PacketByteBuf(Unpooled.buffer())
+        passedData.writeCompoundTag(terminalConfig.toTag(CompoundTag()))
+        ClientSidePacketRegistry.INSTANCE.sendToServer(UPDATE_TERMINAL_CONFIG_C2S_PACKET, passedData)
+    }
+
     override fun init() {
         super.init()
 
-        if(size == Size.AUTOMATIC) {
-            size.rows = (height-144)/18
-            if(size.rows < 3) size.rows = 3
-            size.y = 113+(18*size.rows)
+        if(terminalConfig.size == TerminalConfig.Size.AUTOMATIC) {
+            terminalConfig.size.rows = (height-144)/18
+            if(terminalConfig.size.rows < 3) terminalConfig.size.rows = 3
+            terminalConfig.size.y = 113+(18*terminalConfig.size.rows)
         }
 
-        bWidth = size.x
-        bHeight = size.y
+        bWidth = terminalConfig.size.x
+        bHeight = terminalConfig.size.y
         x = (width - bWidth) / 2
         y = (height - bHeight) / 2
 
@@ -89,24 +80,24 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         while(slotIterator.hasNext()) {
             val slot = slotIterator.next()
             when(slot.id) {
-                in (0..26) -> (slot as SlotMixin).setY(103 + (slot.id/9) * 18 + 18*(size.rows-4))
-                else -> (slot as SlotMixin).setY(161 + 18*(size.rows-4))
+                in (0..26) -> (slot as SlotMixin).setY(103 + (slot.id/9) * 18 + 18*(terminalConfig.size.rows-4))
+                else -> (slot as SlotMixin).setY(161 + 18*(terminalConfig.size.rows-4))
             }
         }
 
-        if(handler.terminalSlots.size > size.rows*9) {
+        if(handler.terminalSlots.size > terminalConfig.size.rows*9) {
             val it = handler.terminalSlots.iterator()
             var index = 0
             while(it.hasNext()) {
                 it.next()
-                if(index >= size.rows*9) it.remove()
+                if(index >= terminalConfig.size.rows*9) it.remove()
                 index++
             }
         }
 
-        if(handler.terminalSlots.size < size.rows*9) {
+        if(handler.terminalSlots.size < terminalConfig.size.rows*9) {
             val i = 18 + 18 * handler.terminalSlots.size/9
-            (0 until size.rows*9-handler.terminalSlots.size).forEach {
+            (0 until terminalConfig.size.rows*9-handler.terminalSlots.size).forEach {
                 handler.terminalSlots.add(TerminalSlot(8 + (it-((it/9)*9))*18, (it/9)*18 + i))
             }
         }
@@ -117,17 +108,34 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         searchBox!!.setEditableColor(16777215)
         this.addChild(searchBox)
 
+
+
         sizeButton = EnumButtonWidget(x-18, y + 4, ButtonWidget.PressAction {
             sizeButton?.change()
-            if(sizeButton != null && sizeButton!!.state != size) size = sizeButton!!.state
+            sizeButton?.state?.let {
+                terminalConfig.size = it
+            }
+            updateTerminalConfig()
             init(client, width, height)
-        }, size, Size.values(), Size.TALL.texture!!, 193, 0)
+        }, terminalConfig.size, TerminalConfig.Size.values(), TerminalConfig.Size.TALL.texture!!, 193, 0)
         this.addButton(sizeButton)
 
-        sortButton = EnumButtonWidget(x-18, y + 22, ButtonWidget.PressAction {sortButton?.change()}, Sort.NAME, Sort.values(), Size.TALL.texture, 193, 16)
+        sortButton = EnumButtonWidget(x-18, y + 22, ButtonWidget.PressAction {
+            sortButton?.change();
+            sortButton?.state?.let{
+                terminalConfig.sort = it
+            }
+            updateTerminalConfig()
+        }, terminalConfig.sort, TerminalConfig.Sort.values(), TerminalConfig.Size.TALL.texture, 193, 16)
         this.addButton(sortButton)
 
-        sortDirectionButton = EnumButtonWidget(x-18, y + 40, ButtonWidget.PressAction {sortDirectionButton?.change()}, SortDirection.ASCENDING, SortDirection.values(), Size.TALL.texture, 193, 32)
+        sortDirectionButton = EnumButtonWidget(x-18, y + 40, ButtonWidget.PressAction {
+            sortDirectionButton?.change()
+            sortDirectionButton?.state?.let {
+                terminalConfig.sortDirection = it
+            }
+            updateTerminalConfig()
+        }, terminalConfig.sortDirection, TerminalConfig.SortDirection.values(), TerminalConfig.Size.TALL.texture, 193, 32)
         this.addButton(sortDirectionButton)
 
         scrollOffset = y + 18
@@ -170,17 +178,17 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         val allStacks = handler.network.searchStacks(searchBox?.text ?: "")
 
         var sortedStacks = when(sortButton?.state) {
-            Sort.NAME -> allStacks.sortedBy { TranslatableText(it.translationKey).string }
-            Sort.QUANTITY -> allStacks.sortedBy { it.count }.reversed()
-            Sort.ID -> allStacks.sortedBy { Registry.ITEM.getRawId(it.item) }
+            TerminalConfig.Sort.NAME -> allStacks.sortedBy { TranslatableText(it.translationKey).string }
+            TerminalConfig.Sort.QUANTITY -> allStacks.sortedBy { it.count }.reversed()
+            TerminalConfig.Sort.ID -> allStacks.sortedBy { Registry.ITEM.getRawId(it.item) }
             else -> allStacks
         }
 
-        if(sortDirectionButton?.state == SortDirection.DESCENDING) sortedStacks = sortedStacks.reversed()
+        if(sortDirectionButton?.state == TerminalConfig.SortDirection.DESCENDING) sortedStacks = sortedStacks.reversed()
 
         activeSlots = sortedStacks.size
-        scrollable = activeSlots/9f > (size.rows).toFloat()
-        scrollPages = (MathHelper.ceil(activeSlots/9f) - size.rows)
+        scrollable = activeSlots/9f > (terminalConfig.size.rows).toFloat()
+        scrollPages = (MathHelper.ceil(activeSlots/9f) - terminalConfig.size.rows)
 
         val scrollPage = getScrollPage()
 
@@ -218,7 +226,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
     override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
         return if (isScrolling) {
-            scrollOffset = MathHelper.clamp(mouseY.toInt(), y+18, y+(size.rows*18)+1)
+            scrollOffset = MathHelper.clamp(mouseY.toInt(), y+18, y+(terminalConfig.size.rows*18)+1)
             true
         } else {
             super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
@@ -226,7 +234,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
     }
 
     private fun getScrollPage(): Int {
-        val scrollPercentage = (scrollOffset-(y+18)).toFloat()/(y+(size.rows*18)+1-(y+18)).toFloat()
+        val scrollPercentage = (scrollOffset-(y+18)).toFloat()/(y+(terminalConfig.size.rows*18)+1-(y+18)).toFloat()
         return (scrollPercentage/(1f/ scrollPages)).toInt()
     }
 
@@ -235,12 +243,12 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         if(amount > 0) {
             if(scrollPage > 0) {
                 val desiredPercentage = (scrollPage-1f)/scrollPages
-                scrollOffset = MathHelper.ceil((desiredPercentage*(y+(size.rows*18)+1-(y+18)) + (y+18)))
+                scrollOffset = MathHelper.ceil((desiredPercentage*(y+(terminalConfig.size.rows*18)+1-(y+18)) + (y+18)))
             }
         }else{
             if(scrollPage < scrollPages) {
                 val desiredPercentage = (scrollPage+1f)/scrollPages
-                scrollOffset = MathHelper.ceil(desiredPercentage*(y+(size.rows*18)+1-(y+18)) + (y+18))
+                scrollOffset = MathHelper.ceil(desiredPercentage*(y+(terminalConfig.size.rows*18)+1-(y+18)) + (y+18))
             }
         }
         return super.mouseScrolled(mouseX, mouseY, amount)
@@ -258,7 +266,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
             val placeholderStack = hoverTerminalSlot!!.item.copy()
             if (placeholderStack.count > placeholderStack.maxCount) placeholderStack.count = placeholderStack.maxCount
             passedData.writeItemStack(placeholderStack)
-            ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT, passedData)
+            ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT_C2S_PACKET, passedData)
         }
         return super.mouseClicked(mouseX, mouseY, button)
     }
@@ -310,13 +318,13 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
     override fun drawBackground(matrices: MatrixStack?, delta: Float, mouseX: Int, mouseY: Int) {
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
-        client!!.textureManager.bindTexture(size.texture)
-        if(size == Size.AUTOMATIC) {
+        client!!.textureManager.bindTexture(terminalConfig.size.texture)
+        if(terminalConfig.size == TerminalConfig.Size.AUTOMATIC) {
             drawTexture(matrices, x, y, 0, 0, 193, 35)
-            (0 until size.rows-2).forEach {
+            (0 until terminalConfig.size.rows-2).forEach {
                 drawTexture(matrices, x, y+35+it*18, 0, 35, 193, 18)
             }
-            drawTexture(matrices, x, y+35+(size.rows-2)*18, 0, 125, 193, 114)
+            drawTexture(matrices, x, y+35+(terminalConfig.size.rows-2)*18, 0, 125, 193, 114)
         }else{
             drawTexture(matrices, x, y, 0, 0, bWidth, bHeight)
         }
@@ -324,7 +332,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
     }
 
     override fun drawForeground(matrices: MatrixStack?, mouseX: Int, mouseY: Int) {
-        val i = (size.rows-5)
+        val i = (terminalConfig.size.rows-5)
         textRenderer.draw(matrices, title.string, 6f, 6f, 4210752)
         textRenderer.draw(matrices, playerInventory.displayName, 6f,  110f+(i*18), 4210752)
     }

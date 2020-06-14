@@ -1,12 +1,15 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable
 
+import io.github.lucaargolo.opticalnetworks.blocks.cable.exporter.Exporter
 import net.minecraft.block.BlockState
+import net.minecraft.block.entity.BlockEntity
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.Direction
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.util.shape.VoxelShapes
+import net.minecraft.world.BlockView
 
-class StorageBus: Exporter() {
+class StorageBus: CableAttachment() {
 
     override fun getSpacificShape(state: BlockState): VoxelShape {
         val facing = state[Properties.FACING]
@@ -37,5 +40,9 @@ class StorageBus: Exporter() {
             )
             else -> createCuboidShape(0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
         }, super.getSpacificShape(state))
+    }
+
+    override fun createBlockEntity(world: BlockView?): BlockEntity? {
+        return null
     }
 }

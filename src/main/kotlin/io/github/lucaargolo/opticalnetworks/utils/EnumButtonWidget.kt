@@ -7,6 +7,7 @@ import net.minecraft.client.gui.DrawableHelper
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.LiteralText
+import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 
 class EnumButtonWidget<T: Enum<T>>(x: Int, y: Int, action: PressAction, selectedEnum: T, private val array: Array<T>, private val texture: Identifier, private val u: Int, private val v: Int): ButtonWidget(x, y, 16, 16, LiteralText(""), action ) {

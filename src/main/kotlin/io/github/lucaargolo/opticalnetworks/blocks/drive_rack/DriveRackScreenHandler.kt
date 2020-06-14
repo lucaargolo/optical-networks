@@ -2,6 +2,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
 import io.github.lucaargolo.opticalnetworks.blocks.DRIVE_RACK
 import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
+import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventory
@@ -12,7 +13,7 @@ import net.minecraft.screen.slot.Slot
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class DriveRackScreenHandler (syncId: Int, playerInventory: PlayerInventory, val entity: DriveRackBlockEntity, private val context: ScreenHandlerContext): ScreenHandler(null, syncId) {
+class DriveRackScreenHandler (syncId: Int, playerInventory: PlayerInventory, entity: DriveRackBlockEntity, context: ScreenHandlerContext): BlockEntityScreenHandler<DriveRackBlockEntity>(syncId, playerInventory, entity, context) {
 
     private var player: PlayerEntity = playerInventory.player
 

@@ -1,10 +1,10 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
-import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT
+import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT_C2S_PACKET
+import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
-import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
@@ -12,7 +12,7 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.text.LiteralText
 
-class ControllerColorScreen(val network: NetworkState.Network): Screen(LiteralText("Color Selection")) {
+class ControllerColorScreen(val network: Network): Screen(LiteralText("Color Selection")) {
 
     private var colorBox: TextFieldWidget? = null
     private var setButton: ButtonWidget? = null
@@ -28,7 +28,7 @@ class ControllerColorScreen(val network: NetworkState.Network): Screen(LiteralTe
             passedData.writeUuid(network.id)
             passedData.writeInt(2)
             passedData.writeString(colorBox?.text)
-            ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT, passedData)
+            ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT_C2S_PACKET, passedData)
             onClose()
         })
         this.addButton(setButton)

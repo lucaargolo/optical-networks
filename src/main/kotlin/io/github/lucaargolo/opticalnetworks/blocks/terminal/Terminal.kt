@@ -1,8 +1,9 @@
 package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
-import io.github.lucaargolo.opticalnetworks.network.NetworkConnectable
+import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.network.getNetworkState
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.minecraft.block.Block
@@ -40,7 +41,7 @@ class Terminal: NetworkConnectable(FabricBlockSettings.of(Material.METAL)) {
 
     override fun onUse(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, hit: BlockHitResult): ActionResult {
         if (!world.isClient) {
-            val network = NetworkState.getNetworkState(world as ServerWorld).getNetwork(world, pos)
+            val network = getNetworkState(world as ServerWorld).getNetwork(world, pos)
             if(network == null) {
                 player.sendMessage(LiteralText("This is not a valid network!"), false)
             }else{

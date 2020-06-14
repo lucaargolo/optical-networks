@@ -1,5 +1,6 @@
-package io.github.lucaargolo.opticalnetworks.network
+package io.github.lucaargolo.opticalnetworks.network.blocks
 
+import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import net.minecraft.block.BlockEntityProvider
 import net.minecraft.block.BlockState
 import net.minecraft.screen.NamedScreenHandlerFactory

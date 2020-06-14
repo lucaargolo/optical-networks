@@ -1,6 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable
 
-import io.github.lucaargolo.opticalnetworks.network.NetworkConnectable
+import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.*
 import net.minecraft.item.ItemPlacementContext

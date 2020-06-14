@@ -1,7 +1,9 @@
 package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import io.github.lucaargolo.opticalnetworks.blocks.TERMINAL
+import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.utils.NetworkScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventory
@@ -12,7 +14,7 @@ import net.minecraft.screen.slot.Slot
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class TerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, val network: NetworkState.Network, private val context: ScreenHandlerContext): ScreenHandler(null, syncId) {
+class TerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, network: Network, context: ScreenHandlerContext): NetworkScreenHandler(syncId, playerInventory, network, context) {
 
     val terminalSlots = mutableListOf<TerminalSlot>()
 

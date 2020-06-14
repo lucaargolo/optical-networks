@@ -1,23 +1,16 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
-import io.github.lucaargolo.opticalnetworks.blocks.getEntityType
-import io.github.lucaargolo.opticalnetworks.network.NetworkState
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
+import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
-import net.minecraft.block.entity.BlockEntity
-import net.minecraft.client.MinecraftClient
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.server.world.ServerWorld
-import net.minecraft.util.Tickable
 import team.reborn.energy.EnergySide
 import team.reborn.energy.EnergyStorage
 import team.reborn.energy.EnergyTier
 import java.awt.Color
 
-class ControllerBlockEntity(val block: Block): BlockEntity(getEntityType(block)), BlockEntityClientSerializable, EnergyStorage, Tickable {
+class ControllerBlockEntity(block: Block): NetworkBlockEntity(block), EnergyStorage {
 
-    var currentNetwork: NetworkState.Network? = null;
     var storedPower = 0.0
     var storedColor = Color.ORANGE
         set(value) {
@@ -26,16 +19,7 @@ class ControllerBlockEntity(val block: Block): BlockEntity(getEntityType(block))
             if(world?.isClient == false) sync()
         }
 
-    override fun tick() {
-        if(world?.isClient == false) {
-            val networkState = NetworkState.getNetworkState(world as ServerWorld)
-            currentNetwork = networkState.getNetwork(world as ServerWorld, pos)
-            if(currentNetwork == null) {
-                networkState.updateBlock(world as ServerWorld, pos)
-            }
-            sync()
-        }
-    }
+
 
     override fun setStored(p0: Double) {
         storedPower = p0
@@ -60,11 +44,5 @@ class ControllerBlockEntity(val block: Block): BlockEntity(getEntityType(block))
         super.fromTag(state, tag)
     }
 
-    override fun toClientTag(tag: CompoundTag): CompoundTag {
-        return toTag(tag)
-    }
 
-    override fun fromClientTag(tag: CompoundTag) {
-        fromTag(block.defaultState, tag)
-    }
 }

@@ -1,7 +1,8 @@
 package io.github.lucaargolo.opticalnetworks.items.basic
 
-import io.github.lucaargolo.opticalnetworks.network.NetworkConnectable
+import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.network.getNetworkState
 import net.minecraft.item.Item
 import net.minecraft.item.ItemUsageContext
 import net.minecraft.server.world.ServerWorld
@@ -14,7 +15,7 @@ class NetworkAnalyser(settings: Settings): Item(settings) {
         val blockState = context.world.getBlockState(context.blockPos)
         return if(blockState.block is NetworkConnectable) {
             if(!context.world.isClient) {
-                val networkState = NetworkState.getNetworkState(context.world as ServerWorld)
+                val networkState = getNetworkState(context.world as ServerWorld)
                 val network = networkState.getNetwork(context.world as ServerWorld, context.blockPos)
                 if(network == null) {
                     context.player?.sendMessage(LiteralText("No network my dude"), false)

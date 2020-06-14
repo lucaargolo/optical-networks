@@ -1,24 +1,35 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable
 
-import io.github.lucaargolo.opticalnetworks.network.NetworkConnectable
-import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.Block
+import net.minecraft.block.BlockEntityProvider
 import net.minecraft.block.BlockState
 import net.minecraft.block.ConnectingBlock
-import net.minecraft.block.Material
 import net.minecraft.item.ItemPlacementContext
+import net.minecraft.screen.NamedScreenHandlerFactory
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.util.shape.VoxelShapes
+import net.minecraft.world.World
 import net.minecraft.world.WorldAccess
 
-open class Exporter: Cable() {
+abstract class CableAttachment: Cable(), BlockEntityProvider {
 
     init {
         defaultState = stateManager.defaultState.with(Properties.FACING, Direction.DOWN)
+    }
+
+    override fun onSyncedBlockEvent(state: BlockState?, world: World, pos: BlockPos?, type: Int, data: Int): Boolean {
+        super.onSyncedBlockEvent(state, world, pos, type, data)
+        val blockEntity = world.getBlockEntity(pos)
+        return blockEntity?.onSyncedBlockEvent(type, data) ?: false
+    }
+
+    override fun createScreenHandlerFactory(state: BlockState?, world: World, pos: BlockPos?): NamedScreenHandlerFactory? {
+        val blockEntity = world.getBlockEntity(pos)
+        return if (blockEntity is NamedScreenHandlerFactory) blockEntity else null
     }
 
     override fun appendProperties(builder: StateManager.Builder<Block, BlockState>) {
@@ -84,5 +95,4 @@ open class Exporter: Cable() {
             else -> state
         }
     }
-
 }

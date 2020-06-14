@@ -3,6 +3,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.network.getStackFromTag
 import net.minecraft.block.HorizontalFacingBlock
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.RenderLayer
@@ -35,7 +36,7 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
                 if(stackTag.contains("items")) {
                     val itemsTag = stackTag.get("items") as ListTag
                     itemsTag.forEach { tag ->
-                        usedSpace += NetworkState.getStackFromTag(tag as CompoundTag).count
+                        usedSpace += getStackFromTag(tag as CompoundTag).count
                     }
                 }
                 var state = when(usedSpace.toFloat()/(it.item as DiscDrive).bytes.toFloat()) {

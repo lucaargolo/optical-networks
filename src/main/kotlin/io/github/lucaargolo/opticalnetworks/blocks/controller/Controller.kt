@@ -1,8 +1,9 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
-import io.github.lucaargolo.opticalnetworks.network.NetworkConnectableWithEntity
+import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectableWithEntity
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.network.getNetworkState
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.minecraft.block.BlockState
@@ -30,7 +31,7 @@ class Controller: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.M
         return if(world.getBlockEntity(pos) is ControllerBlockEntity) {
             if(!world.isClient) {
                 player.sendMessage(LiteralText("stored energy: ${(world.getBlockEntity(pos) as ControllerBlockEntity).storedPower}"), false)
-                val network = NetworkState.getNetworkState(world as ServerWorld).getNetwork(world, pos)
+                val network = getNetworkState(world as ServerWorld).getNetwork(world, pos)
                 if(network == null) {
                     player.sendMessage(LiteralText("This is not a valid network!"), false)
                 }else{

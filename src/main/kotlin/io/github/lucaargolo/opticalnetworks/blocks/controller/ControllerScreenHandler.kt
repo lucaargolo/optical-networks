@@ -1,7 +1,9 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import io.github.lucaargolo.opticalnetworks.blocks.CONTROLLER
+import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.utils.NetworkScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventories
@@ -14,7 +16,7 @@ import net.minecraft.util.collection.DefaultedList
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class ControllerScreenHandler(syncId: Int, playerInventory: PlayerInventory, val network: NetworkState.Network, private val context: ScreenHandlerContext): ScreenHandler(null, syncId) {
+class ControllerScreenHandler(syncId: Int, playerInventory: PlayerInventory, network: Network, context: ScreenHandlerContext): NetworkScreenHandler(syncId, playerInventory, network, context) {
 
     val invStack: DefaultedList<ItemStack> = DefaultedList.ofSize(1, ItemStack.EMPTY);
     val inventory = object: Inventory {
