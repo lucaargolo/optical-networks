@@ -5,11 +5,11 @@ import net.minecraft.util.Identifier
 
 class TerminalConfig {
 
-    enum class Size(var rows: Int, val texture: Identifier?, var x: Int, var y: Int) {
-        SHORT(3, Identifier("opticalnetworks:textures/gui/terminal_short.png"), 193, 167),
-        REGULAR(5, Identifier("opticalnetworks:textures/gui/terminal_normal.png"), 193, 203),
-        TALL(7, Identifier("opticalnetworks:textures/gui/terminal_tall.png"), 193, 239),
-        AUTOMATIC(0, Identifier("opticalnetworks:textures/gui/terminal_tall.png"), 193, 0)
+    enum class Size(var rows: Int, var x: Int, var y: Int) {
+        SHORT(3, 193, 167),
+        REGULAR(5, 193, 203),
+        TALL(7, 193, 239),
+        AUTOMATIC(0, 193, 0)
     }
 
     enum class Sort {

@@ -2,25 +2,20 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import io.github.lucaargolo.opticalnetworks.blocks.TERMINAL
 import io.github.lucaargolo.opticalnetworks.network.Network
-import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.github.lucaargolo.opticalnetworks.utils.NetworkScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
-import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.ScreenHandlerContext
 import net.minecraft.screen.slot.Slot
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class TerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, network: Network, context: ScreenHandlerContext): NetworkScreenHandler(syncId, playerInventory, network, context) {
+open class TerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, network: Network, context: ScreenHandlerContext): NetworkScreenHandler(syncId, playerInventory, network, context), TerminalScreenHandlerInterface {
 
-    val terminalSlots = mutableListOf<TerminalSlot>()
+    override val terminalSlots = mutableListOf<TerminalSlot>()
 
     init {
-        val i = 18 * 3
-
         (0..6).forEach { n ->
             (0..8).forEach { m ->
                 terminalSlots.add(TerminalSlot(8 + m * 18, n * 18 + 18))
@@ -29,12 +24,12 @@ class TerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, netwo
 
         (0..2).forEach { n ->
             (0..8).forEach { m ->
-                addSlot(Slot(playerInventory, m + n * 9 + 9, 8 + m * 18, 103 + n * 18 + i))
+                addSlot(Slot(playerInventory, m + n * 9 + 9, 8 + m * 18, 0))
             }
         }
 
         (0..8).forEach { n ->
-            addSlot(Slot(playerInventory, n,  8 + n * 18, 161 + i))
+            addSlot(Slot(playerInventory, n,  8 + n * 18, 0))
         }
     }
 

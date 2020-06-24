@@ -39,15 +39,19 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-    modApi 'teamreborn:energy:0.1.0'
 
-    modImplementation "TechReborn:TechReborn-1.16:3.3.12+build.33"
+    //modImplementation "TechReborn:TechReborn-1.16:${project.techreborn_version}"
     modImplementation "io.github.prospector:modmenu:${project.modmenu_version}"
     modImplementation "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
-
     modImplementation("grondag:darkness-${project.mc_tag}:${project.darkness_version}.+") { transitive = false}
 
-    modImplementation ("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false}
+    modApi "teamreborn:energy:${project.energy_version}"
+    include "teamreborn:energy:${project.energy_version}"
+
+    modApi ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false}
+    include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
+
+    modApi ("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false}
     include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
 }
 

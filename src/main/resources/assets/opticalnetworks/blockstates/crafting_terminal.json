@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "opticalnetworks:block/crafting_terminal" },
+    "facing=south": { "model": "opticalnetworks:block/crafting_terminal", "y": 180 },
+    "facing=west":  { "model": "opticalnetworks:block/crafting_terminal", "y": 270 },
+    "facing=east":  { "model": "opticalnetworks:block/crafting_terminal", "y": 90 }
+  }
+}

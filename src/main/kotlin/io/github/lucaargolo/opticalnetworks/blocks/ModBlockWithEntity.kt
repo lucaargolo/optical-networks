@@ -74,22 +74,35 @@ class ModBlockWithEntity<T: BlockEntity>: ModBlock {
         if (container != null) {
             ContainerProviderRegistry.INSTANCE.registerFactory(identifier) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
                 val pos = packetByteBuf.readBlockPos()
-                if(container!!.java.constructors[0].parameterTypes[2] == Network::class.java) {
+                if(container!!.java.constructors[0].parameterCount == 5) {
                     val tag = packetByteBuf.readCompoundTag()
                     val network = Network(null, playerEntity.world);
                     network.fromTag(tag!!)
                     container!!.java.constructors[0].newInstance(syncId,
                         playerEntity.inventory,
                         network,
-                        ScreenHandlerContext.create(playerEntity.world, pos)
-                    ) as ScreenHandler
-                }else{
-                    container!!.java.constructors[0].newInstance(syncId,
-                        playerEntity.inventory,
                         playerEntity.world.getBlockEntity(pos),
                         ScreenHandlerContext.create(playerEntity.world, pos)
                     ) as ScreenHandler
+                }else{
+                    if(container!!.java.constructors[0].parameterTypes[2] == Network::class.java) {
+                        val tag = packetByteBuf.readCompoundTag()
+                        val network = Network(null, playerEntity.world);
+                        network.fromTag(tag!!)
+                        container!!.java.constructors[0].newInstance(syncId,
+                            playerEntity.inventory,
+                            network,
+                            ScreenHandlerContext.create(playerEntity.world, pos)
+                        ) as ScreenHandler
+                    }else{
+                        container!!.java.constructors[0].newInstance(syncId,
+                            playerEntity.inventory,
+                            playerEntity.world.getBlockEntity(pos),
+                            ScreenHandlerContext.create(playerEntity.world, pos)
+                        ) as ScreenHandler
+                    }
                 }
+
             }
         }
     }
@@ -99,7 +112,7 @@ class ModBlockWithEntity<T: BlockEntity>: ModBlock {
         if(containerScreen != null) {
             ScreenProviderRegistry.INSTANCE.registerFactory(identifier) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
                 val pos = packetByteBuf.readBlockPos()
-                if(container!!.java.constructors[0].parameterTypes[2] == Network::class.java) {
+                if(container!!.java.constructors[0].parameterCount == 5) {
                     val tag = packetByteBuf.readCompoundTag()
                     val network = Network(null, playerEntity.world);
                     network.fromTag(tag!!)
@@ -108,19 +121,33 @@ class ModBlockWithEntity<T: BlockEntity>: ModBlock {
                             syncId,
                             playerEntity.inventory,
                             network,
+                            playerEntity.entityWorld.getBlockEntity(pos),
                             ScreenHandlerContext.EMPTY
                         ) as ScreenHandler, playerEntity.inventory, TranslatableText("screen.${MOD_ID}.${getBlockId(block)?.path}")
                     ) as HandledScreen<*>
                 }else{
-                    val entity = playerEntity.entityWorld.getBlockEntity(pos)
-                    containerScreen!!.java.constructors[0].newInstance(
-                        container!!.java.constructors[0].newInstance(
-                            syncId,
-                            playerEntity.inventory,
-                            entity,
-                            ScreenHandlerContext.EMPTY
-                        ) as ScreenHandler, playerEntity.inventory, TranslatableText("screen.${MOD_ID}.${getBlockId(block)?.path}")
-                    ) as HandledScreen<*>
+                    if(container!!.java.constructors[0].parameterTypes[2] == Network::class.java) {
+                        val tag = packetByteBuf.readCompoundTag()
+                        val network = Network(null, playerEntity.world);
+                        network.fromTag(tag!!)
+                        containerScreen!!.java.constructors[0].newInstance(
+                            container!!.java.constructors[0].newInstance(
+                                syncId,
+                                playerEntity.inventory,
+                                network,
+                                ScreenHandlerContext.EMPTY
+                            ) as ScreenHandler, playerEntity.inventory, TranslatableText("screen.${MOD_ID}.${getBlockId(block)?.path}")
+                        ) as HandledScreen<*>
+                    }else{
+                        containerScreen!!.java.constructors[0].newInstance(
+                            container!!.java.constructors[0].newInstance(
+                                syncId,
+                                playerEntity.inventory,
+                                playerEntity.entityWorld.getBlockEntity(pos),
+                                ScreenHandlerContext.EMPTY
+                            ) as ScreenHandler, playerEntity.inventory, TranslatableText("screen.${MOD_ID}.${getBlockId(block)?.path}")
+                        ) as HandledScreen<*>
+                    }
                 }
             }
         }

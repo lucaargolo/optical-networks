@@ -1,6 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.items
 
 import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.items.basic.Blueprint
 import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
 import io.github.lucaargolo.opticalnetworks.items.basic.NetworkAnalyser
 import net.minecraft.item.Item
@@ -12,6 +13,7 @@ val itemRegistry = mutableMapOf<Identifier, ModItem>()
 
 val NETWORK_ANALYSER = register(Identifier(MOD_ID, "network_analyser"), ModItem(NetworkAnalyser(Settings().group(ItemGroup.MISC))))
 
+val BLUEPRINT = register(Identifier(MOD_ID, "blueprint"), ModItem(Blueprint(Settings().group(ItemGroup.MISC))))
 val DISC_4K = register(Identifier(MOD_ID, "disc_4k"), ModItem(Item(Settings().group(ItemGroup.MISC))))
 val DISC_DRIVE_4K = register(Identifier(MOD_ID, "disc_drive_4k"), ModItem(DiscDrive(Settings().group(ItemGroup.MISC).maxCount(1), 4096)))
 

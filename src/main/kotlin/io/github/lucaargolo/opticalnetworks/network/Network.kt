@@ -45,6 +45,7 @@ class Network(val state: NetworkState?, var world: World) {
         val itemList = mutableListOf<ItemStack>()
         componentsMap.forEach { it ->
             if(it.value is DriveRack) {
+                if(world.getBlockEntity(it.key) == null) println(it.key)
                 (world.getBlockEntity(it.key) as DriveRackBlockEntity).inventory.forEach { invStack ->
                     if(invStack.item is DiscDrive) {
                         val stackTag = invStack.orCreateTag
@@ -128,7 +129,7 @@ class Network(val state: NetworkState?, var world: World) {
         return Pair(usedSpace, totalSpace)
     }
 
-    fun removeStack(stack: ItemStack) {
+    fun removeStack(stack: ItemStack): Boolean {
         getStorageByPriority().forEach {rackEntity ->
             rackEntity.inventory.forEach {rackStack ->
                 if(rackStack.item is DiscDrive) {
@@ -153,8 +154,10 @@ class Network(val state: NetworkState?, var world: World) {
                     }
                 }
             }
-            (rackEntity as BlockEntityClientSerializable).sync()
+            rackEntity.markDirty()
+            if(rackEntity.world?.isClient == false) (rackEntity as BlockEntityClientSerializable).sync()
         }
+        return stack.isEmpty
     }
 
     fun insertStack(stack: ItemStack): ItemStack {
@@ -209,7 +212,8 @@ class Network(val state: NetworkState?, var world: World) {
                     }
                 }
             }
-            (rackEntity as BlockEntityClientSerializable).sync()
+            rackEntity.markDirty()
+            if(rackEntity.world?.isClient == false) (rackEntity as BlockEntityClientSerializable).sync()
         }
         return stack;
     }

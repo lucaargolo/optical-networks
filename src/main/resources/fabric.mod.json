@@ -23,6 +23,12 @@
     ],
     "client": [
       "io.github.lucaargolo.opticalnetworks.OpticalNetworksModKt::initClient"
+    ],
+    "rei_plugins": [
+      "io.github.lucaargolo.opticalnetworks.integration.ReiPlugin"
+    ],
+    "rei_containers": [
+      "io.github.lucaargolo.opticalnetworks.integration.ReiContainer"
     ]
   },
   "mixins": [

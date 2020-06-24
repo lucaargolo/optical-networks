@@ -1,8 +1,8 @@
-package io.github.lucaargolo.opticalnetworks.blocks.cable.exporter
+package io.github.lucaargolo.opticalnetworks.blocks.cable.attachment
 
 import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
-import io.github.lucaargolo.opticalnetworks.utils.GhostSlotProvider
+import io.github.lucaargolo.opticalnetworks.utils.GhostSlot
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.ChestBlock
@@ -15,7 +15,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.state.property.Properties
 import net.minecraft.util.collection.DefaultedList
 
-class ExporterBlockEntity(block: Block): NetworkBlockEntity(block), GhostSlotProvider {
+open class AttachmentBlockEntity(block: Block): NetworkBlockEntity(block), GhostSlot.GhostSlotBlockEntity {
     enum class List {
         WHITELIST,
         BLACKLIST
@@ -59,7 +59,7 @@ class ExporterBlockEntity(block: Block): NetworkBlockEntity(block), GhostSlotPro
         tag.putInt("nbtMode", Nbt.values().indexOf(nbtMode))
         tag.putInt("damageMode", Damage.values().indexOf(damageMode))
         tag.putInt("orderMode", Order.values().indexOf(orderMode))
-        tag.putInt("redstoneMode", Order.values().indexOf(redstoneMode))
+        tag.putInt("redstoneMode", Redstone.values().indexOf(redstoneMode))
         return super.toTag(tag)
     }
 
@@ -76,69 +76,48 @@ class ExporterBlockEntity(block: Block): NetworkBlockEntity(block), GhostSlotPro
 
     var inserted = false
 
-    override fun tick() {
-        super.tick()
-        if (world?.isClient == false && delayCount >= 20 && currentNetwork != null) {
-            val inventory = getOutputInventory()
-            if(inventory != null) {
-                val availableStacks = currentNetwork!!.searchStacks("")
-                inserted = false
-                if(listMode == List.WHITELIST) {
-                    val sampleInv = getOrderedInv(getFilterInv())
-                    sampleInv.forEachIndexed { sortIndex, filterStack ->
-                        availableStacks.forEach { storedStack ->
-                            var matches = true
-                            if (filterStack.item != storedStack.item) matches = false
-                            if (nbtMode == Nbt.MATCH && !ItemStack.areTagsEqual(filterStack, storedStack)) matches = false
-                            if (damageMode == Damage.MATCH && !ItemStack.areItemsEqual(filterStack, storedStack)) matches = false
-                            val matchedStack = if (matches) filterStack.copy() else ItemStack.EMPTY
-                            if(!matchedStack.isEmpty) tryToInsert(matchedStack, inventory, sampleInv.size)
-                            if(inserted) return@forEachIndexed
-                        }
-                    }
-                }else{
-                    val sampleInv = getOrderedInv(availableStacks)
-                    sampleInv.forEachIndexed { sortIndex, filterStack ->
-                        var matches = false
-                        getFilterInv().forEach { storedStack ->
-                            if (areStacksCompatible(filterStack, storedStack)) matches = true
-                            if (nbtMode == Nbt.IGNORE && ItemStack.areItemsEqual(filterStack, storedStack)) matches = true
-                            if (damageMode == Damage.IGNORE && ItemStack.areItemsEqualIgnoreDamage(filterStack, storedStack)) matches = true
-                        }
-                        val matchedStack = if (!matches) filterStack.copy() else ItemStack.EMPTY
-                        if(!matchedStack.isEmpty) tryToInsert(matchedStack, inventory, sampleInv.size)
-                        if(inserted) return@forEachIndexed
-                    }
-                }
-
-            }
-            delayCount = 0;
-        }
-        delayCount++
-    }
-
-    private fun getFilterInv(): kotlin.collections.List<ItemStack> {
+    fun getFilterInv(): kotlin.collections.List<ItemStack> {
         val filterInv = mutableListOf<ItemStack>()
         ghostInv.forEach { if(!it.isEmpty) filterInv.add(it) }
         return filterInv
     }
 
-    private fun getOrderedInv(list: kotlin.collections.List<ItemStack>): kotlin.collections.List<ItemStack> {
+    fun getOrderedInv(list: kotlin.collections.List<ItemStack>): kotlin.collections.List<ItemStack> {
         if(lastInsert+1 > list.size) lastInsert = 0;
         return when(orderMode) {
             Order.LAST_TO_FIRST -> list.reversed()
             Order.RANDOM -> list.shuffled()
             Order.ROUND_ROBIN -> {
-                val nl = mutableListOf<ItemStack>()
-                nl.addAll(list.subList(lastInsert+1, list.size))
-                nl.addAll(list.subList(0, lastInsert+1))
-                nl
+                if(list.isEmpty()) list
+                else {
+                    val nl = mutableListOf<ItemStack>()
+                    nl.addAll(list.subList(lastInsert+1, list.size))
+                    nl.addAll(list.subList(0, lastInsert+1))
+                    nl
+                }
             }
             else -> list
         }
     }
 
-    private fun tryToInsert(stack: ItemStack, inventory: Inventory, sampleSize: Int) {
+    fun tryToImport(slot: Int, inventory: Inventory, sampleSize: Int) {
+        val pair = currentNetwork!!.getSpace()
+        val available = pair.second-pair.first
+        if(available > 0) {
+            val invStack = inventory.getStack(slot)
+            if (!inserted && !invStack.isEmpty) {
+                invStack.decrement(1)
+                val dummyStack = invStack.copy()
+                dummyStack.count = 1
+                currentNetwork!!.insertStack(dummyStack)
+                lastInsert = if (lastInsert + 1 == sampleSize) 0 else if (lastInsert + 1 > sampleSize) lastInsert + 1 - sampleSize else lastInsert + 1
+                println(lastInsert)
+                inserted = true
+            }
+        }
+    }
+
+    fun tryToExport(stack: ItemStack, inventory: Inventory, sampleSize: Int) {
         stack.count = 1
         val i = inventory.size()
         (0 until i).forEach {
@@ -159,7 +138,7 @@ class ExporterBlockEntity(block: Block): NetworkBlockEntity(block), GhostSlotPro
         }
     }
 
-    private fun getOutputInventory(): Inventory? {
+    fun getAttachedInventory(): Inventory? {
         var inventory: Inventory? = null
         val world = world!!
         val facing = cachedState[Properties.FACING]

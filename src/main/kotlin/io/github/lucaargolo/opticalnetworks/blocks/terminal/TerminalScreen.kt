@@ -7,6 +7,8 @@ import io.github.lucaargolo.opticalnetworks.network.UPDATE_TERMINAL_CONFIG_C2S_P
 import io.github.lucaargolo.opticalnetworks.network.UPDATE_TERMINAL_CONFIG_S2C_PACKET
 import io.github.lucaargolo.opticalnetworks.network.terminalConfig
 import io.github.lucaargolo.opticalnetworks.utils.EnumButtonWidget
+import io.github.lucaargolo.opticalnetworks.utils.NetworkScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.PressableWidget
 import io.github.lucaargolo.opticalnetworks.utils.ScrollButtonWidget
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
@@ -24,15 +26,19 @@ import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.PacketByteBuf
+import net.minecraft.screen.ScreenHandler
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
+import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.registry.Registry
 
-class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory, title: Text): HandledScreen<TerminalScreenHandler>(handler, inventory, title) {
+open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, title: Text): HandledScreen<ScreenHandler>(handler, inventory, title) {
+
+    private var texture = Identifier("opticalnetworks:textures/gui/terminal.png")
 
     private var scrollPages = 1
     private var scrollOffset = 0
@@ -47,10 +53,11 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
     private var searchBox: TextFieldWidget? = null
 
-    private var bWidth = 0
-    private var bHeight = 0
+    protected var bWidth = 0
+    protected var bHeight = 0
 
     private var hoverTerminalSlot: TerminalSlot? = null
+    private var hdl = handler as TerminalScreenHandlerInterface
 
     override fun tick() {
         searchBox?.tick()
@@ -62,9 +69,18 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         ClientSidePacketRegistry.INSTANCE.sendToServer(UPDATE_TERMINAL_CONFIG_C2S_PACKET, passedData)
     }
 
-    override fun init() {
-        super.init()
+    open fun repositionSlots() {
+        val slotIterator = handler.slots.iterator()
+        while(slotIterator.hasNext()) {
+            val slot = slotIterator.next()
+            when(slot.id) {
+                in (0..26) -> (slot as SlotMixin).setY(103 + (slot.id/9) * 18 + 18*(terminalConfig.size.rows-4))
+                else -> (slot as SlotMixin).setY(161 + 18*(terminalConfig.size.rows-4))
+            }
+        }
+    }
 
+    open fun updateSize() {
         if(terminalConfig.size == TerminalConfig.Size.AUTOMATIC) {
             terminalConfig.size.rows = (height-144)/18
             if(terminalConfig.size.rows < 3) terminalConfig.size.rows = 3
@@ -75,18 +91,18 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         bHeight = terminalConfig.size.y
         x = (width - bWidth) / 2
         y = (height - bHeight) / 2
+    }
 
-        val slotIterator = handler.slots.iterator()
-        while(slotIterator.hasNext()) {
-            val slot = slotIterator.next()
-            when(slot.id) {
-                in (0..26) -> (slot as SlotMixin).setY(103 + (slot.id/9) * 18 + 18*(terminalConfig.size.rows-4))
-                else -> (slot as SlotMixin).setY(161 + 18*(terminalConfig.size.rows-4))
-            }
-        }
+    open fun getSearchBoxSixe() = 80
 
-        if(handler.terminalSlots.size > terminalConfig.size.rows*9) {
-            val it = handler.terminalSlots.iterator()
+    override fun init() {
+        super.init()
+
+        updateSize()
+        repositionSlots()
+
+        if(hdl.terminalSlots.size > terminalConfig.size.rows*9) {
+            val it = hdl.terminalSlots.iterator()
             var index = 0
             while(it.hasNext()) {
                 it.next()
@@ -95,20 +111,18 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
             }
         }
 
-        if(handler.terminalSlots.size < terminalConfig.size.rows*9) {
-            val i = 18 + 18 * handler.terminalSlots.size/9
-            (0 until terminalConfig.size.rows*9-handler.terminalSlots.size).forEach {
-                handler.terminalSlots.add(TerminalSlot(8 + (it-((it/9)*9))*18, (it/9)*18 + i))
+        if(hdl.terminalSlots.size < terminalConfig.size.rows*9) {
+            val i = 18 + 18 * hdl.terminalSlots.size/9
+            (0 until terminalConfig.size.rows*9-hdl.terminalSlots.size).forEach {
+                hdl.terminalSlots.add(TerminalSlot(8 + (it-((it/9)*9))*18, (it/9)*18 + i))
             }
         }
 
-        searchBox = TextFieldWidget(textRenderer, x+81, y+5, 80, 9, LiteralText(""))
+        searchBox = TextFieldWidget(textRenderer, x+81+(80-getSearchBoxSixe()), y+5, getSearchBoxSixe(), 9, LiteralText(""))
         searchBox!!.setMaxLength(50)
         searchBox!!.setHasBorder(false)
         searchBox!!.setEditableColor(16777215)
         this.addChild(searchBox)
-
-
 
         sizeButton = EnumButtonWidget(x-18, y + 4, ButtonWidget.PressAction {
             sizeButton?.change()
@@ -117,7 +131,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
             }
             updateTerminalConfig()
             init(client, width, height)
-        }, terminalConfig.size, TerminalConfig.Size.values(), TerminalConfig.Size.TALL.texture!!, 193, 0)
+        }, terminalConfig.size, TerminalConfig.Size.values(), texture, 193, 0)
         this.addButton(sizeButton)
 
         sortButton = EnumButtonWidget(x-18, y + 22, ButtonWidget.PressAction {
@@ -126,7 +140,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
                 terminalConfig.sort = it
             }
             updateTerminalConfig()
-        }, terminalConfig.sort, TerminalConfig.Sort.values(), TerminalConfig.Size.TALL.texture, 193, 16)
+        }, terminalConfig.sort, TerminalConfig.Sort.values(), texture, 193, 16)
         this.addButton(sortButton)
 
         sortDirectionButton = EnumButtonWidget(x-18, y + 40, ButtonWidget.PressAction {
@@ -135,7 +149,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
                 terminalConfig.sortDirection = it
             }
             updateTerminalConfig()
-        }, terminalConfig.sortDirection, TerminalConfig.SortDirection.values(), TerminalConfig.Size.TALL.texture, 193, 32)
+        }, terminalConfig.sortDirection, TerminalConfig.SortDirection.values(), texture, 193, 32)
         this.addButton(sortDirectionButton)
 
         scrollOffset = y + 18
@@ -167,7 +181,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         scrollButton?.y = scrollOffset
 
         hoverTerminalSlot = null
-        handler.terminalSlots.forEach {slot ->
+        hdl.terminalSlots.forEach {slot ->
             val i = slot.x + x - 1
             val j = slot.y + y - 1
             if(mouseX in (i..i+18) && mouseY in (j..j+18)) hoverTerminalSlot = slot
@@ -175,7 +189,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
             slot.count = 0
         }
 
-        val allStacks = handler.network.searchStacks(searchBox?.text ?: "")
+        val allStacks = hdl.network.searchStacks(searchBox?.text ?: "")
 
         var sortedStacks = when(sortButton?.state) {
             TerminalConfig.Sort.NAME -> allStacks.sortedBy { TranslatableText(it.translationKey).string }
@@ -196,7 +210,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         var indexPage = 0
         sortedStacks.forEach {
             if(indexPage >= 9*scrollPage) {
-                val slot = handler.terminalSlots.getOrNull(index)
+                val slot = hdl.terminalSlots.getOrNull(index)
                 if(slot != null) {
                     slot.item = it
                     slot.count = it.count
@@ -213,7 +227,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
         this.buttons.forEach {
             if(it is EnumButtonWidget<*>) {
-                if(it.isHovered()) {
+                if(it.isHovered) {
                     val tooltip = mutableListOf<Text>()
                     tooltip.add(LiteralText(it.state::class.simpleName))
                     val macumba = it.state.name.substring(0, 1) + it.state.name.toLowerCase().substring(1, it.state.name.length)
@@ -259,7 +273,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
         isScrolling = if(scrollButton != null) (scrollable && mouseX > scrollButton!!.x && mouseX < scrollButton!!.x+10 && mouseY > scrollButton!!.y && mouseY <= scrollButton!!.y+15) else isScrolling
         if(hoverTerminalSlot != null && button in (0..1)) {
             val passedData = PacketByteBuf(Unpooled.buffer())
-            passedData.writeUuid(handler.network.id)
+            passedData.writeUuid(hdl.network.id)
             passedData.writeInt(1)
             passedData.writeInt(button)
             passedData.writeBoolean(InputUtil.isKeyPressed(client!!.window.handle, 340) || InputUtil.isKeyPressed(client!!.window.handle, 344))
@@ -273,7 +287,7 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
     override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
         this.buttons.forEach {
-            if(it is EnumButtonWidget<*>) it.isPressed = false
+            if(it is PressableWidget) it.isPressed = false
         }
         isScrolling = false
         return super.mouseReleased(mouseX, mouseY, button)
@@ -318,17 +332,12 @@ class TerminalScreen(handler: TerminalScreenHandler, inventory: PlayerInventory,
 
     override fun drawBackground(matrices: MatrixStack?, delta: Float, mouseX: Int, mouseY: Int) {
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
-        client!!.textureManager.bindTexture(terminalConfig.size.texture)
-        if(terminalConfig.size == TerminalConfig.Size.AUTOMATIC) {
-            drawTexture(matrices, x, y, 0, 0, 193, 35)
-            (0 until terminalConfig.size.rows-2).forEach {
-                drawTexture(matrices, x, y+35+it*18, 0, 35, 193, 18)
-            }
-            drawTexture(matrices, x, y+35+(terminalConfig.size.rows-2)*18, 0, 125, 193, 114)
-        }else{
-            drawTexture(matrices, x, y, 0, 0, bWidth, bHeight)
+        client!!.textureManager.bindTexture(texture)
+        drawTexture(matrices, x, y, 0, 0, 193, 35)
+        (0 until terminalConfig.size.rows-2).forEach {
+            drawTexture(matrices, x, y+35+it*18, 0, 35, 193, 18)
         }
-
+        drawTexture(matrices, x, y+35+(terminalConfig.size.rows-2)*18, 0, 125, 193, 114)
     }
 
     override fun drawForeground(matrices: MatrixStack?, mouseX: Int, mouseY: Int) {

@@ -7,11 +7,13 @@ import io.github.lucaargolo.opticalnetworks.network.getNetworkState
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.minecraft.block.Block
+import net.minecraft.block.BlockEntityProvider
 import net.minecraft.block.BlockState
 import net.minecraft.block.Material
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemPlacementContext
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.screen.NamedScreenHandlerFactory
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.state.StateManager
@@ -22,9 +24,10 @@ import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
+import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
-class Terminal: NetworkConnectable(FabricBlockSettings.of(Material.METAL)) {
+open class Terminal: NetworkConnectable(FabricBlockSettings.of(Material.METAL)) {
 
     init {
         defaultState = stateManager.defaultState.with(Properties.HORIZONTAL_FACING, Direction.SOUTH)
@@ -54,6 +57,29 @@ class Terminal: NetworkConnectable(FabricBlockSettings.of(Material.METAL)) {
 
         }
         return ActionResult.SUCCESS
+    }
+
+    abstract class TerminalWithEntity: Terminal(), BlockEntityProvider {
+
+        override fun onSyncedBlockEvent(state: BlockState?, world: World, pos: BlockPos?, type: Int, data: Int): Boolean {
+            super.onSyncedBlockEvent(state, world, pos, type, data)
+            val blockEntity = world.getBlockEntity(pos)
+            return blockEntity?.onSyncedBlockEvent(type, data) ?: false
+        }
+
+        override fun createScreenHandlerFactory(state: BlockState?, world: World, pos: BlockPos?): NamedScreenHandlerFactory? {
+            val blockEntity = world.getBlockEntity(pos)
+            return if (blockEntity is NamedScreenHandlerFactory) blockEntity else null
+        }
+
+    }
+
+    class Crafting: TerminalWithEntity() {
+        override fun createBlockEntity(world: BlockView?) = CraftingTerminalBlockEntity(this)
+    }
+
+    class Blueprint: TerminalWithEntity() {
+        override fun createBlockEntity(world: BlockView?) = BlueprintTerminalBlockEntity(this)
     }
 
 }

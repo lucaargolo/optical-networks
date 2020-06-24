@@ -1,6 +1,5 @@
 package io.github.lucaargolo.opticalnetworks.utils
 
-import io.github.lucaargolo.opticalnetworks.blocks.cable.exporter.ExporterBlockEntity
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.screen.ScreenHandler

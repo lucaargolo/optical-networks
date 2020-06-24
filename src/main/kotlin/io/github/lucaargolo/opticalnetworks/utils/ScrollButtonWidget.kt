@@ -8,11 +8,11 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
 
-class ScrollButtonWidget(x: Int, y: Int, action: PressAction): ButtonWidget(x, y, 10, 15, LiteralText(""), action) {
+class ScrollButtonWidget(x: Int, y: Int, action: PressAction): ButtonWidget(x, y, 10, 15, LiteralText(""), action), PressableWidget {
 
     private val DEFAULT: Identifier = Identifier(MOD_ID, "textures/gui/generic.png")
 
-    var isPressed: Boolean = false;
+    override var isPressed: Boolean = false;
 
     override fun renderButton(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)

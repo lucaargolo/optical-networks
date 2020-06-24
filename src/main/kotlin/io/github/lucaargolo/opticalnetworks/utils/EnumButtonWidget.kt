@@ -10,7 +10,7 @@ import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 
-class EnumButtonWidget<T: Enum<T>>(x: Int, y: Int, action: PressAction, selectedEnum: T, private val array: Array<T>, private val texture: Identifier, private val u: Int, private val v: Int): ButtonWidget(x, y, 16, 16, LiteralText(""), action ) {
+class EnumButtonWidget<T: Enum<T>>(x: Int, y: Int, action: PressAction, selectedEnum: T, private val array: Array<T>, private val texture: Identifier, private val u: Int, private val v: Int): ButtonWidget(x, y, 16, 16, LiteralText(""), action ), PressableWidget {
 
     private val genericTexture: Identifier = Identifier(MOD_ID, "textures/gui/generic.png")
 
@@ -33,7 +33,7 @@ class EnumButtonWidget<T: Enum<T>>(x: Int, y: Int, action: PressAction, selected
         return array[selected]
     }
 
-    var isPressed: Boolean = false;
+    override var isPressed: Boolean = false;
 
     override fun renderButton(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)

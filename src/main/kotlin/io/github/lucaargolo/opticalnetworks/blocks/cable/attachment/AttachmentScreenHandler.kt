@@ -1,21 +1,22 @@
-package io.github.lucaargolo.opticalnetworks.blocks.cable.exporter
+package io.github.lucaargolo.opticalnetworks.blocks.cable.attachment
 
-import io.github.lucaargolo.opticalnetworks.blocks.EXPORTER
-import io.github.lucaargolo.opticalnetworks.blocks.TERMINAL
 import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
 import io.github.lucaargolo.opticalnetworks.utils.GhostSlot
+import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
-import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.ScreenHandlerContext
 import net.minecraft.screen.slot.Slot
+import net.minecraft.util.collection.DefaultedList
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class ExporterScreenHandler(syncId: Int, playerInventory: PlayerInventory, entity: ExporterBlockEntity, context: ScreenHandlerContext): BlockEntityScreenHandler<ExporterBlockEntity>(syncId, playerInventory, entity, context) {
+class AttachmentScreenHandler(syncId: Int, playerInventory: PlayerInventory, entity: AttachmentBlockEntity, context: ScreenHandlerContext): BlockEntityScreenHandler<AttachmentBlockEntity>(syncId, playerInventory, entity, context), GhostSlot.GhostSlotScreenHandler {
 
-    val ghostSlots = mutableListOf<GhostSlot>()
+    override val ghostSlots = mutableListOf<GhostSlot>()
+    override fun getGhostInv(): DefaultedList<ItemStack> = entity.ghostInv
+    override fun getBlockEntity(): BlockEntity = entity
 
     init {
         (0..2).forEach { n ->
@@ -39,12 +40,11 @@ class ExporterScreenHandler(syncId: Int, playerInventory: PlayerInventory, entit
         return ItemStack.EMPTY
     }
 
-
     override fun canUse(player: PlayerEntity): Boolean {
         return context.run({ world: World, blockPos: BlockPos ->
             if (world.getBlockState(
                     blockPos
-                ).block != EXPORTER
+                ).block != entity.block
             ) false else player.squaredDistanceTo(
                 blockPos.x + .5,
                 blockPos.y + .5,

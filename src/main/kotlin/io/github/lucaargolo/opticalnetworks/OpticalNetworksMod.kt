@@ -10,11 +10,13 @@ import io.github.lucaargolo.opticalnetworks.blocks.terminal.TerminalScreenHandle
 import io.github.lucaargolo.opticalnetworks.items.initItems
 import io.github.lucaargolo.opticalnetworks.items.initItemsClient
 import io.github.lucaargolo.opticalnetworks.network.*
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
 import net.fabricmc.fabric.api.network.PacketContext
+import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.util.ModelIdentifier
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.network.PacketByteBuf

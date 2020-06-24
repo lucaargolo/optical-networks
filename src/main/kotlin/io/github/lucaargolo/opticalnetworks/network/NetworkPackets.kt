@@ -1,21 +1,30 @@
 package io.github.lucaargolo.opticalnetworks.network
 
+import com.google.common.collect.Lists
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalBlockEntity
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScreenHandler
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.CraftingTerminalScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.TerminalConfig
 import io.github.lucaargolo.opticalnetworks.mixed.ServerPlayerEntityMixed
-import io.github.lucaargolo.opticalnetworks.utils.GhostSlotProvider
+import io.github.lucaargolo.opticalnetworks.utils.GhostSlot
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
 import net.fabricmc.fabric.api.network.PacketContext
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.PacketByteBuf
+import net.minecraft.network.packet.s2c.play.ScreenHandlerSlotUpdateS2CPacket
+import net.minecraft.recipe.RecipeSerializer
+import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
@@ -27,7 +36,8 @@ val GHOST_SLOT_CLICK_C2S_PACKET = Identifier(MOD_ID, "ghost_slot_click")
 val UPDATE_CABLE_BUTTONS_C2S_PACKET = Identifier(MOD_ID, "update_cable_buttons")
 val UPDATE_TERMINAL_BUTTONS_C2S_PACKET = Identifier(MOD_ID, "update_terminal_buttons")
 val UPDATE_TERMINAL_CONFIG_C2S_PACKET = Identifier(MOD_ID, "update_terminal_config_c2s")
-
+val CLEAR_TERMINAL_TABLE = Identifier(MOD_ID, "clear_terminal_item")
+val MOVE_TERMINAL_ITEMS_PACKET = Identifier(MOD_ID, "move_terminal_items")
 
 fun initNetworkPackets() {
 
@@ -77,8 +87,9 @@ fun initNetworkPackets() {
 
         packetContext.taskQueue.execute {
             val entity = packetContext.player.world.getBlockEntity(pos)
-            if(entity is GhostSlotProvider) entity.ghostInv[idx] = stk
+            if(entity is GhostSlot.GhostSlotBlockEntity) entity.ghostInv[idx] = stk
             if(entity is BlockEntityClientSerializable) entity.sync()
+            packetContext.player.currentScreenHandler.onContentChanged(null)
         }
     }
 
@@ -122,6 +133,79 @@ fun initNetworkPackets() {
         }
     }
 
+    ServerSidePacketRegistry.INSTANCE.register(CLEAR_TERMINAL_TABLE) { packetContext: PacketContext, _ ->
+        val screenHandler = packetContext.player.currentScreenHandler
+        if(screenHandler is CraftingTerminalScreenHandler) {
+            packetContext.taskQueue.execute {
+                clearTerminalTable(screenHandler, packetContext.player as ServerPlayerEntity)
+            }
+        }else if(screenHandler is BlueprintTerminalScreenHandler) {
+            packetContext.taskQueue.execute {
+                (screenHandler.entity as BlueprintTerminalBlockEntity).ghostInv.clear()
+                screenHandler.entity.markDirty()
+                screenHandler.entity.sync()
+            }
+        }
+    }
+
+    if(!FabricLoader.getInstance().isModLoaded("roughlyenoughitems")) return
+
+    ServerSidePacketRegistry.INSTANCE.register(MOVE_TERMINAL_ITEMS_PACKET) { packetContext: PacketContext, packetByteBuf: PacketByteBuf ->
+        val category = packetByteBuf.readIdentifier()
+        val player = packetContext.player as ServerPlayerEntity
+        val container = player.currentScreenHandler as CraftingTerminalScreenHandler
+        val playerContainer = player.playerScreenHandler
+        val shift = packetByteBuf.readBoolean()
+        val input = mutableMapOf<Int, List<ItemStack>>()
+        val mapSize = packetByteBuf.readInt()
+        for (i in 0 until mapSize) {
+            val list: MutableList<ItemStack> = Lists.newArrayList()
+            val count = packetByteBuf.readInt()
+            for (j in 0 until count) {
+                list.add(packetByteBuf.readItemStack())
+            }
+            input[i] = list
+        }
+        packetContext.taskQueue.execute {
+            clearTerminalTable(container, player)
+            val networkItems = container.network.searchStacks("");
+            input.forEach { (craftingSlotId, possibleStacks) ->
+                val possibleItems = mutableListOf<Item>()
+                possibleStacks.forEach {
+                    possibleItems.add(it.item)
+                }
+                networkItems.forEach net@{ networkStack ->
+                    if(possibleItems.contains(networkStack.item)) {
+                        possibleStacks.forEach { requiredStack ->
+                            if(areStacksCompatible(networkStack, requiredStack)) {
+                                container.network.removeStack(requiredStack.copy())
+                                container.slots[craftingSlotId+1].stack = requiredStack
+                                player.networkHandler.sendPacket(ScreenHandlerSlotUpdateS2CPacket(container.syncId, craftingSlotId+1, requiredStack))
+                                return@net
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        println(input)
+    }
+
+}
+
+private fun clearTerminalTable(screenHandler: CraftingTerminalScreenHandler, player: ServerPlayerEntity) {
+    val pair = screenHandler.network.getSpace()
+    val availableSpace = pair.second-pair.first
+    player.networkHandler.sendPacket(ScreenHandlerSlotUpdateS2CPacket(screenHandler.syncId, 0, ItemStack.EMPTY))
+    (1..10).forEach {
+        val stk = screenHandler.slots[it].stack.copy()
+        if(!stk.isEmpty) {
+            if(availableSpace < stk.count) player.inventory.offerOrDrop(player.world, stk)
+            else screenHandler.network.insertStack(stk)
+        }
+        screenHandler.slots[it].stack = ItemStack.EMPTY
+        player.networkHandler.sendPacket(ScreenHandlerSlotUpdateS2CPacket(screenHandler.syncId, it, ItemStack.EMPTY))
+    }
 }
 
 private fun updateCursorStack(playerInventory: PlayerInventory, stack: ItemStack) {
@@ -205,6 +289,7 @@ private fun executeMouseClicker(stack: ItemStack, playerInventory: PlayerInvento
 val UPDATE_TERMINAL_CONFIG_S2C_PACKET = Identifier(MOD_ID, "update_terminal_config_s2c")
 val UPDATE_COLOR_MAP_S2C_PACKET = Identifier(MOD_ID, "update_color")
 val UPDATE_CURSOR_SLOT_S2C_PACKET = Identifier(MOD_ID, "update_cursor_slot")
+val SYNCHRONIZE_LAST_RECIPE_PACKET = Identifier(MOD_ID, "synchronize_last_recipe")
 
 val colorMap = mutableMapOf<BlockPos, Color>()
 var terminalConfig = TerminalConfig()
@@ -229,6 +314,18 @@ fun initNetworkPacketsClient() {
         val stack = attachedData.readItemStack()
         packetContext.taskQueue.execute {
             packetContext.player.inventory.cursorStack = stack
+        }
+    }
+    ClientSidePacketRegistry.INSTANCE.register(SYNCHRONIZE_LAST_RECIPE_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+        val type = attachedData.readInt()
+        val id = attachedData.readIdentifier()
+        val recipe = if(type == 0) RecipeSerializer.SHAPED.read(id, attachedData)
+        else RecipeSerializer.SHAPELESS.read(id, attachedData)
+        packetContext.taskQueue.execute {
+            val screenHandler = packetContext.player.currentScreenHandler
+            if(screenHandler is CraftingTerminalScreenHandler) {
+                screenHandler.lastRecipe = recipe
+            }
         }
     }
 }

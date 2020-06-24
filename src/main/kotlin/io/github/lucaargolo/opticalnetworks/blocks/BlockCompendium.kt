@@ -2,21 +2,15 @@ package io.github.lucaargolo.opticalnetworks.blocks
 
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.assembler.Assembler
-import io.github.lucaargolo.opticalnetworks.blocks.cable.Cable
-import io.github.lucaargolo.opticalnetworks.blocks.cable.exporter.Exporter
-import io.github.lucaargolo.opticalnetworks.blocks.cable.Importer
-import io.github.lucaargolo.opticalnetworks.blocks.cable.StorageBus
-import io.github.lucaargolo.opticalnetworks.blocks.cable.exporter.ExporterBlockEntity
-import io.github.lucaargolo.opticalnetworks.blocks.cable.exporter.ExporterScreen
-import io.github.lucaargolo.opticalnetworks.blocks.cable.exporter.ExporterScreenHandler
+import io.github.lucaargolo.opticalnetworks.blocks.cable.*
+import io.github.lucaargolo.opticalnetworks.blocks.cable.attachment.AttachmentScreen
+import io.github.lucaargolo.opticalnetworks.blocks.cable.attachment.AttachmentScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreen
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.*
-import io.github.lucaargolo.opticalnetworks.blocks.terminal.Terminal
-import io.github.lucaargolo.opticalnetworks.blocks.terminal.TerminalScreen
-import io.github.lucaargolo.opticalnetworks.blocks.terminal.TerminalScreenHandler
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.*
 import io.github.lucaargolo.opticalnetworks.network.colorMap
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry
 import net.minecraft.block.Block
@@ -28,16 +22,17 @@ import net.minecraft.util.Identifier
 val blockRegistry = mutableMapOf<Identifier, ModBlock>()
 
 val CABLE = register(Identifier(MOD_ID, "cable"), ModBlock(Cable()))
-val EXPORTER = register(Identifier(MOD_ID, "exporter"), ModBlockWithEntity<ExporterBlockEntity>(Exporter(), ExporterScreenHandler::class, ExporterScreen::class))
-val IMPORTER = register(Identifier(MOD_ID, "importer"), ModBlock(Importer()))
+val EXPORTER = register(Identifier(MOD_ID, "exporter"), ModBlockWithEntity<ExporterBlockEntity>(Exporter(), AttachmentScreenHandler::class, AttachmentScreen::class))
+val IMPORTER = register(Identifier(MOD_ID, "importer"), ModBlockWithEntity<ImporterBlockEntity>(Importer(), AttachmentScreenHandler::class, AttachmentScreen::class))
 val STORAGE_BUS = register(Identifier(MOD_ID, "storage_bus"), ModBlock(StorageBus()))
 
+val BLUEPRINT_TERMINAL = register(Identifier(MOD_ID, "blueprint_terminal"), ModBlockWithEntity<BlueprintTerminalBlockEntity>(Terminal.Blueprint(), BlueprintTerminalScreenHandler::class, BlueprintTerminalScreen::class))
+val CRAFTING_TERMINAL = register(Identifier(MOD_ID, "crafting_terminal"), ModBlockWithEntity<CraftingTerminalBlockEntity>(Terminal.Crafting(), CraftingTerminalScreenHandler::class, CraftingTerminalScreen::class))
 val TERMINAL = register(Identifier(MOD_ID, "terminal"), ModBlockWithEntity<BlockEntity>(Terminal(), TerminalScreenHandler::class, TerminalScreen::class))
 
 val ASSEMBLER = register(Identifier(MOD_ID, "assembler"), ModBlock(Assembler()))
 val CONTROLLER = register(Identifier(MOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller(), ControllerScreenHandler::class, ControllerScreen::class))
 val DRIVE_RACK = register(Identifier(MOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), DriveRackBlockEntityRenderer::class, DriveRackScreenHandler::class, DriveRackScreen::class))
-
 
 private fun register(identifier: Identifier, block: ModBlock): Block {
     blockRegistry[identifier] = block

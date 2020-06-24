@@ -1,6 +1,5 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable
 
-import io.github.lucaargolo.opticalnetworks.blocks.cable.exporter.Exporter
 import net.minecraft.block.BlockState
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.state.property.Properties
