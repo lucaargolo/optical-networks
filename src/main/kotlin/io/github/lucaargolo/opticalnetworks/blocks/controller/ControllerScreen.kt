@@ -1,13 +1,12 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import com.mojang.blaze3d.systems.RenderSystem
-import io.github.lucaargolo.opticalnetworks.MOD_ID
-import io.github.lucaargolo.opticalnetworks.utils.EnumButtonWidget
-import io.github.lucaargolo.opticalnetworks.utils.ScrollButtonWidget
+import io.github.lucaargolo.opticalnetworks.utils.CommonHandledScreen
+import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
+import io.github.lucaargolo.opticalnetworks.utils.widgets.ScrollButtonWidget
 import net.minecraft.block.Block
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawableHelper
-import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.entity.player.PlayerInventory
@@ -18,7 +17,7 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 
-class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInventory, title: Text): HandledScreen<ControllerScreenHandler>(handler, inventory, title) {
+class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInventory, title: Text): CommonHandledScreen<ControllerScreenHandler>(handler, inventory, title) {
 
     private val generic = Identifier("opticalnetworks:textures/gui/generic.png")
     private val texture = Identifier("opticalnetworks:textures/gui/controller.png")
@@ -41,8 +40,9 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         x = width/2-bWidth/2
         y = height/2-bHeight/2
 
-        colorButton = object: ButtonWidget(x-18, y+4, 16, 16, LiteralText(""), PressAction { client!!.openScreen(ControllerColorScreen(handler.network)) }) {
-            var isPressed: Boolean = false;
+        colorButton = object: ButtonWidget(x-18, y+4, 16, 16, LiteralText(""), PressAction { client!!.openScreen(ControllerColorScreen(handler.network)) }),
+            PressableWidget {
+            override var isPressed: Boolean = false;
 
             override fun renderButton(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
                 RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
@@ -55,11 +55,14 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         this.addButton(colorButton)
 
         scrollOffset = y + 18
-        scrollButton = ScrollButtonWidget(x+158, y + 18, ButtonWidget.PressAction{})
+        scrollButton = ScrollButtonWidget(
+            x + 158,
+            y + 18,
+            ButtonWidget.PressAction {})
         this.addButton(scrollButton)
     }
 
-    override fun render(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         this.renderBackground(matrices)
         super.render(matrices, mouseX, mouseY, delta)
         scrollButton?.isPressed = this.isScrolling
@@ -131,9 +134,6 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
     }
 
     override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        this.buttons.forEach {
-            if(it is EnumButtonWidget<*>) it.isPressed = false
-        }
         isScrolling = false
         return super.mouseReleased(mouseX, mouseY, button)
     }

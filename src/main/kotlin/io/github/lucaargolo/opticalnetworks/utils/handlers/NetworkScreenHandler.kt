@@ -1,4 +1,4 @@
-package io.github.lucaargolo.opticalnetworks.utils
+package io.github.lucaargolo.opticalnetworks.utils.handlers
 
 import io.github.lucaargolo.opticalnetworks.network.Network
 import net.minecraft.entity.player.PlayerInventory

@@ -2,14 +2,12 @@ package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import io.github.lucaargolo.opticalnetworks.blocks.CONTROLLER
 import io.github.lucaargolo.opticalnetworks.network.Network
-import io.github.lucaargolo.opticalnetworks.network.NetworkState
-import io.github.lucaargolo.opticalnetworks.utils.NetworkScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.handlers.NetworkScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventories
 import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
-import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.ScreenHandlerContext
 import net.minecraft.screen.slot.Slot
 import net.minecraft.util.collection.DefaultedList

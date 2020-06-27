@@ -1,65 +1,22 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
 import io.github.lucaargolo.opticalnetworks.blocks.DRIVE_RACK
-import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
-import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
+import io.github.lucaargolo.opticalnetworks.utils.BlockEntityInventory
+import io.github.lucaargolo.opticalnetworks.utils.handlers.BlockEntityScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
-import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.ScreenHandlerContext
 import net.minecraft.screen.slot.Slot
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class DriveRackScreenHandler (syncId: Int, playerInventory: PlayerInventory, entity: DriveRackBlockEntity, context: ScreenHandlerContext): BlockEntityScreenHandler<DriveRackBlockEntity>(syncId, playerInventory, entity, context) {
+class DriveRackScreenHandler(syncId: Int, playerInventory: PlayerInventory, entity: DriveRackBlockEntity, context: ScreenHandlerContext): BlockEntityScreenHandler<DriveRackBlockEntity>(syncId, playerInventory, entity, context) {
 
     private var player: PlayerEntity = playerInventory.player
 
-    var inventory: Inventory = object: Inventory {
-        override fun size(): Int {
-            return entity.size()
-        }
-
-        override fun isEmpty(): Boolean {
-            return entity.isEmpty
-        }
-
-        override fun getStack(slot: Int): ItemStack? {
-            return entity.getStack(slot)
-        }
-
-        override fun removeStack(slot: Int): ItemStack? {
-            val stack: ItemStack = entity.removeStack(slot)
-            onContentChanged(this)
-            return stack
-        }
-
-        override fun removeStack(slot: Int, amount: Int): ItemStack? {
-            val stack: ItemStack = entity.removeStack(slot, amount)
-            onContentChanged(this)
-            return stack
-        }
-
-        override fun setStack(slot: Int, stack: ItemStack) {
-            entity.setStack(slot, stack)
-            onContentChanged(this)
-        }
-
-        override fun markDirty() {
-            entity.markDirty()
-        }
-
-        override fun canPlayerUse(player: PlayerEntity?): Boolean {
-            return entity.canPlayerUse(player)
-        }
-
-        override fun clear() {
-            entity.clear()
-        }
-
-    }
+    var inventory = BlockEntityInventory(this, entity)
 
     init {
         checkSize(inventory, 10)
@@ -70,7 +27,7 @@ class DriveRackScreenHandler (syncId: Int, playerInventory: PlayerInventory, ent
             (0..1).forEach { m ->
                 addSlot(object: Slot(inventory, m + n * 2, 35 + (m+2) * 18, n * 18) {
                     override fun canInsert(stack: ItemStack): Boolean {
-                        return stack.item is DiscDrive
+                        return stack.item is ItemDisc
                     }
                 })
             }

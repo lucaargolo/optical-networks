@@ -1,26 +1,19 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable.attachment
 
 import com.mojang.blaze3d.systems.RenderSystem
-import io.github.lucaargolo.opticalnetworks.network.GHOST_SLOT_CLICK_C2S_PACKET
 import io.github.lucaargolo.opticalnetworks.network.UPDATE_CABLE_BUTTONS_C2S_PACKET
-import io.github.lucaargolo.opticalnetworks.utils.EnumButtonWidget
-import io.github.lucaargolo.opticalnetworks.utils.GhostSlotHandledScreen
-import io.github.lucaargolo.opticalnetworks.utils.PressableWidget
+import io.github.lucaargolo.opticalnetworks.utils.CommonHandledScreen
+import io.github.lucaargolo.opticalnetworks.utils.widgets.EnumButtonWidget
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
-import net.minecraft.client.gui.DrawableHelper
-import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.gui.widget.ButtonWidget
-import net.minecraft.client.item.TooltipContext
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
-import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 
-class AttachmentScreen(handler: AttachmentScreenHandler, inventory: PlayerInventory, title: Text): GhostSlotHandledScreen<AttachmentScreenHandler>(handler, inventory, title) {
+class AttachmentScreen(handler: AttachmentScreenHandler, inventory: PlayerInventory, title: Text): CommonHandledScreen<AttachmentScreenHandler>(handler, inventory, title) {
 
     private val texture = Identifier("opticalnetworks:textures/gui/cable.png")
 
@@ -56,28 +49,10 @@ class AttachmentScreen(handler: AttachmentScreenHandler, inventory: PlayerInvent
         this.addButton(redstoneButton)
     }
 
-    override fun render(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
+    override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         this.renderBackground(matrices)
         super.render(matrices, mouseX, mouseY, delta)
         drawMouseoverTooltip(matrices, mouseX, mouseY)
-        this.buttons.forEach {
-            if(it is EnumButtonWidget<*>) {
-                if(it.isHovered()) {
-                    val tooltip = mutableListOf<Text>()
-                    tooltip.add(LiteralText(it.state::class.simpleName))
-                    val macumba = it.state.name.substring(0, 1) + it.state.name.toLowerCase().substring(1, it.state.name.length)
-                    tooltip.add(LiteralText("Selected: $macumba"))
-                    renderTooltip(matrices, tooltip, mouseX, mouseY)
-                }
-            }
-        }
-    }
-
-    override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        this.buttons.forEach {
-            if(it is PressableWidget) it.isPressed = false
-        }
-        return super.mouseReleased(mouseX, mouseY, button)
     }
 
     override fun drawBackground(matrices: MatrixStack?, delta: Float, mouseX: Int, mouseY: Int) {

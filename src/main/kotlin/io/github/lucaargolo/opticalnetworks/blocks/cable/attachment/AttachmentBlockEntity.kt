@@ -2,7 +2,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.cable.attachment
 
 import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
-import io.github.lucaargolo.opticalnetworks.utils.GhostSlot
+import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.ChestBlock
@@ -15,7 +15,7 @@ import net.minecraft.nbt.CompoundTag
 import net.minecraft.state.property.Properties
 import net.minecraft.util.collection.DefaultedList
 
-open class AttachmentBlockEntity(block: Block): NetworkBlockEntity(block), GhostSlot.GhostSlotBlockEntity {
+open class AttachmentBlockEntity(block: Block): NetworkBlockEntity(block), GhostSlot.IBlockEntity {
     enum class List {
         WHITELIST,
         BLACKLIST

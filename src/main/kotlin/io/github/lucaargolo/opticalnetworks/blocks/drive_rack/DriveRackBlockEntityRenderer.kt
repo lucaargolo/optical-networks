@@ -1,23 +1,19 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
 import io.github.lucaargolo.opticalnetworks.MOD_ID
-import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
-import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
 import io.github.lucaargolo.opticalnetworks.network.getStackFromTag
-import net.minecraft.block.HorizontalFacingBlock
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.VertexConsumerProvider
 import net.minecraft.client.render.WorldRenderer
 import net.minecraft.client.render.block.entity.BlockEntityRenderDispatcher
 import net.minecraft.client.render.block.entity.BlockEntityRenderer
-import net.minecraft.client.render.model.BakedModelManager
 import net.minecraft.client.util.ModelIdentifier
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.client.util.math.Vector3f
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
-import net.minecraft.state.property.DirectionProperty
 import net.minecraft.state.property.Properties
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.Direction
@@ -30,7 +26,7 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
         val inventory = entity.inventory
 
         inventory.forEachIndexed { i, it ->
-            if(it.item is DiscDrive) {
+            if(it.item is ItemDisc) {
                 val stackTag = it.orCreateTag
                 var usedSpace = 0
                 if(stackTag.contains("items")) {
@@ -39,7 +35,7 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
                         usedSpace += getStackFromTag(tag as CompoundTag).count
                     }
                 }
-                var state = when(usedSpace.toFloat()/(it.item as DiscDrive).bytes.toFloat()) {
+                var state = when(usedSpace.toFloat()/(it.item as ItemDisc).space.toFloat()) {
                     1f -> "3"
                     in (0f..0.7f) -> "1"
                     in (0.7f..1f) -> "2"

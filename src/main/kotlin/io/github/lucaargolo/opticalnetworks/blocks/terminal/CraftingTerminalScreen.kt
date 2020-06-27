@@ -4,7 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
 import io.github.lucaargolo.opticalnetworks.network.CLEAR_TERMINAL_TABLE
 import io.github.lucaargolo.opticalnetworks.network.terminalConfig
-import io.github.lucaargolo.opticalnetworks.utils.PressableWidget
+import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
 import net.minecraft.client.MinecraftClient
@@ -16,6 +16,7 @@ import net.minecraft.network.PacketByteBuf
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 
 open class CraftingTerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, title: Text): TerminalScreen(handler, inventory, title) {
@@ -26,7 +27,7 @@ open class CraftingTerminalScreen(handler: ScreenHandler, inventory: PlayerInven
 
     override fun init() {
         super.init()
-        clearTable = object: ButtonWidget(x+15, y+75, 8, 8, LiteralText(""), PressAction{
+        clearTable = object: ButtonWidget(x+15, y+75+18*(terminalConfig.size.rows-3), 8, 8, LiteralText(""), PressAction{
             (clearTable as PressableWidget).isPressed = true
             ClientSidePacketRegistry.INSTANCE.sendToServer(CLEAR_TERMINAL_TABLE, PacketByteBuf(Unpooled.buffer()))
         }), PressableWidget {
@@ -68,7 +69,7 @@ open class CraftingTerminalScreen(handler: ScreenHandler, inventory: PlayerInven
         }
     }
 
-    override fun getSearchBoxSixe() = 62
+    override fun getSearchBoxSize() = 62
 
     override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(matrices, mouseX, mouseY, delta)
@@ -76,7 +77,7 @@ open class CraftingTerminalScreen(handler: ScreenHandler, inventory: PlayerInven
             if(it == clearTable) {
                 if(it.isHovered) {
                     val tooltip = mutableListOf<Text>()
-                    tooltip.add(LiteralText("Clear table"))
+                    tooltip.add(LiteralText("${Formatting.GOLD}Clear table"))
                     renderTooltip(matrices, tooltip, mouseX, mouseY)
                 }
             }

@@ -4,7 +4,8 @@ import io.github.lucaargolo.opticalnetworks.blocks.CRAFTING_TERMINAL
 import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.SYNCHRONIZE_LAST_RECIPE_PACKET
 import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
-import io.github.lucaargolo.opticalnetworks.utils.NetworkRecipeScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.handlers.NetworkRecipeScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.widgets.TerminalSlot
 import io.netty.buffer.Unpooled
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
@@ -13,7 +14,6 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.CraftingInventory
 import net.minecraft.inventory.CraftingResultInventory
-import net.minecraft.inventory.Inventories
 import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
@@ -27,7 +27,7 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class CraftingTerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, network: Network, entity: CraftingTerminalBlockEntity, context: ScreenHandlerContext): NetworkRecipeScreenHandler<CraftingInventory>(syncId, playerInventory, network, entity, context), TerminalScreenHandlerInterface {
+class CraftingTerminalScreenHandler(syncId: Int, playerInventory: PlayerInventory, network: Network, entity: CraftingTerminalBlockEntity, context: ScreenHandlerContext): NetworkRecipeScreenHandler<CraftingInventory>(syncId, playerInventory, network, entity, context), Terminal.IScreenHandler {
 
     private val player: PlayerEntity = playerInventory.player
 

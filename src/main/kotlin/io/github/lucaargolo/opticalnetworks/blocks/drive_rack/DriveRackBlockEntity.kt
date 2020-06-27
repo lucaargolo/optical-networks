@@ -1,29 +1,27 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
-import io.github.lucaargolo.opticalnetworks.blocks.getEntityType
-import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
-import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
+import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
-import net.minecraft.block.entity.LockableContainerBlockEntity
 import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventories
+import net.minecraft.inventory.SidedInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.screen.ScreenHandler
-import net.minecraft.text.Text
-import net.minecraft.text.TranslatableText
 import net.minecraft.util.collection.DefaultedList
+import net.minecraft.util.math.Direction
 
-class DriveRackBlockEntity(val block: Block): LockableContainerBlockEntity(getEntityType(block)), BlockEntityClientSerializable {
+class DriveRackBlockEntity(block: Block): NetworkBlockEntity(block), SidedInventory {
 
     var inventory: DefaultedList<ItemStack> = DefaultedList.ofSize(10, ItemStack.EMPTY)
     var priority = 0;
 
-    override fun createScreenHandler(syncId: Int, playerInventory: PlayerInventory?) = null
-
     override fun size() = inventory.size
+
+    override fun getAvailableSlots(side: Direction?): IntArray {
+        return intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    }
 
     override fun isEmpty(): Boolean {
         val iterator = this.inventory.iterator()
@@ -43,16 +41,17 @@ class DriveRackBlockEntity(val block: Block): LockableContainerBlockEntity(getEn
     override fun removeStack(slot: Int): ItemStack = Inventories.removeStack(this.inventory, slot)
 
     override fun setStack(slot: Int, stack: ItemStack) {
-        if(stack.item !is DiscDrive) return
         inventory[slot] = stack
         if (stack.count > maxCountPerStack) {
             stack.count = maxCountPerStack
         }
     }
 
-    override fun clear()  = inventory.clear()
+    override fun canExtract(slot: Int, stack: ItemStack?, dir: Direction?) = true
 
-    override fun getContainerName(): Text = TranslatableText("Drive Rack")
+    override fun canInsert(slot: Int, stack: ItemStack?, dir: Direction?) = (stack?.item is ItemDisc)
+
+    override fun clear()  = inventory.clear()
 
     override fun canPlayerUse(player: PlayerEntity?): Boolean {
         return if (world!!.getBlockEntity(pos) != this) {
@@ -68,17 +67,9 @@ class DriveRackBlockEntity(val block: Block): LockableContainerBlockEntity(getEn
         return super.toTag(tag)
     }
 
-    override fun toClientTag(tag: CompoundTag): CompoundTag {
-        return toTag(tag)
-    }
-
     override fun fromTag(state: BlockState, tag: CompoundTag) {
         super.fromTag(state, tag)
         priority = tag.getInt("priority")
         Inventories.fromTag(tag, inventory)
-    }
-
-    override fun fromClientTag(tag: CompoundTag) {
-        fromTag(block.defaultState, tag)
     }
 }

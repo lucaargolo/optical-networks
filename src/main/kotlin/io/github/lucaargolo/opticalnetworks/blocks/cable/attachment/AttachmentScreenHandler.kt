@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable.attachment
 
-import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
-import io.github.lucaargolo.opticalnetworks.utils.GhostSlot
+import io.github.lucaargolo.opticalnetworks.utils.handlers.BlockEntityScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
@@ -12,7 +12,7 @@ import net.minecraft.util.collection.DefaultedList
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.World
 
-class AttachmentScreenHandler(syncId: Int, playerInventory: PlayerInventory, entity: AttachmentBlockEntity, context: ScreenHandlerContext): BlockEntityScreenHandler<AttachmentBlockEntity>(syncId, playerInventory, entity, context), GhostSlot.GhostSlotScreenHandler {
+class AttachmentScreenHandler(syncId: Int, playerInventory: PlayerInventory, entity: AttachmentBlockEntity, context: ScreenHandlerContext): BlockEntityScreenHandler<AttachmentBlockEntity>(syncId, playerInventory, entity, context), GhostSlot.IScreenHandler {
 
     override val ghostSlots = mutableListOf<GhostSlot>()
     override fun getGhostInv(): DefaultedList<ItemStack> = entity.ghostInv
@@ -21,7 +21,7 @@ class AttachmentScreenHandler(syncId: Int, playerInventory: PlayerInventory, ent
     init {
         (0..2).forEach { n ->
             (0..2).forEach { m ->
-                ghostSlots.add(GhostSlot(m+(n*3),7+(m+3)*18, n*18 + 16))
+                ghostSlots.add(GhostSlot(m + (n * 3), 7 + (m + 3) * 18, n * 18 + 16))
             }
         }
 

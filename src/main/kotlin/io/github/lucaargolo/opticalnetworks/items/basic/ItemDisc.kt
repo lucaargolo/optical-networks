@@ -9,7 +9,7 @@ import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.world.World
 
-class DiscDrive(settings: Settings, val bytes: Int): Item(settings) {
+class ItemDisc(settings: Settings, val space: Int): Item(settings) {
 
     override fun appendTooltip(stack: ItemStack, world: World?, tooltip: MutableList<Text>, context: TooltipContext) {
         val tag = stack.orCreateTag;
@@ -19,7 +19,7 @@ class DiscDrive(settings: Settings, val bytes: Int): Item(settings) {
                 used += (it as CompoundTag).getInt("Count")
             }
         }
-        tooltip.add(LiteralText("Bytes: $used/$bytes"))
+        tooltip.add(LiteralText("Space: $used/$space"))
         super.appendTooltip(stack, world, tooltip, context)
     }
 

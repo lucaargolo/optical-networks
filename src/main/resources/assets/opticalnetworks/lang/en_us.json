@@ -1,7 +1,24 @@
 {
+  "item.opticalnetworks.blueprint": "Blueprint",
+
+  "screen.opticalnetworks.assembler": "Assembler",
+  "screen.opticalnetworks.blueprint_terminal": "Blueprint Terminal",
   "screen.opticalnetworks.crafting_terminal": "Crafting Terminal",
   "screen.opticalnetworks.terminal": "Terminal",
   "screen.opticalnetworks.controller": "Controller",
-  "screen.opticalnetworks.drive_rack": "Drive Rack"
+  "screen.opticalnetworks.drive_rack": "Drive Rack",
+
+  "tooltip.opticalnetworks.blueprint_type_crafting": "§6Crafting",
+  "tooltip.opticalnetworks.blueprint_type_processing": "§6Processing",
+  "tooltip.opticalnetworks.cores": "§9Cores: ",
+  "tooltip.opticalnetworks.speed": "§9Speed: ",
+  "tooltip.opticalnetworks.craftings_per_second": "craftings/second",
+  "tooltip.opticalnetworks.input": "§9Input: ",
+  "tooltip.opticalnetworks.output": "§9Output: ",
+  "tooltip.opticalnetworks.using_nbt": "§9Using NBT: ",
+  "tooltip.opticalnetworks.true": "§aTrue",
+  "tooltip.opticalnetworks.false": "§cFalse"
+
+
 
 }

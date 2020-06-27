@@ -1,9 +1,11 @@
 package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
+import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.github.lucaargolo.opticalnetworks.network.getNetworkState
+import io.github.lucaargolo.opticalnetworks.utils.widgets.TerminalSlot
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.minecraft.block.Block
@@ -21,6 +23,7 @@ import net.minecraft.state.property.Properties
 import net.minecraft.text.LiteralText
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
+import net.minecraft.util.Identifier
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
@@ -28,6 +31,13 @@ import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
 open class Terminal: NetworkConnectable(FabricBlockSettings.of(Material.METAL)) {
+
+    interface IScreenHandler {
+
+        val network: Network
+        val terminalSlots: MutableList<TerminalSlot>
+
+    }
 
     init {
         defaultState = stateManager.defaultState.with(Properties.HORIZONTAL_FACING, Direction.SOUTH)
@@ -80,6 +90,37 @@ open class Terminal: NetworkConnectable(FabricBlockSettings.of(Material.METAL)) 
 
     class Blueprint: TerminalWithEntity() {
         override fun createBlockEntity(world: BlockView?) = BlueprintTerminalBlockEntity(this)
+
+        override fun onUse(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, hit: BlockHitResult): ActionResult {
+            if (!world.isClient) {
+                val network = getNetworkState(world as ServerWorld).getNetwork(world, pos)
+                val entity = world.getBlockEntity(pos)
+                if(network == null || entity !is BlueprintTerminalBlockEntity) {
+                    player.sendMessage(LiteralText("This is not a valid network!"), false)
+                }else{
+                    val identifier = getBlockId(this)!!
+                    val mode = entity.currentMode
+                    if(mode == 0) {
+                        val newIdentifier = Identifier(identifier.namespace, identifier.path+"_crafting")
+                        val tag = network.toTag(CompoundTag())
+                        ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, player as ServerPlayerEntity?) { buf ->
+                            buf.writeBlockPos(pos)
+                            buf.writeCompoundTag(tag)
+                        }
+                    }else {
+                        val newIdentifier = Identifier(identifier.namespace, identifier.path+"_processing")
+                        val tag = network.toTag(CompoundTag())
+                        ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, player as ServerPlayerEntity?) { buf ->
+                            buf.writeBlockPos(pos)
+                            buf.writeCompoundTag(tag)
+                        }
+                    }
+
+                }
+
+            }
+            return ActionResult.SUCCESS
+        }
     }
 
 }

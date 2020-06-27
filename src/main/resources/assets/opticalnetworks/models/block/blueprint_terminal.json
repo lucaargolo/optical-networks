@@ -1,0 +1,28 @@
+{
+  "parent": "opticalnetworks:block/terminal",
+  "textures": {
+    "particle": "opticalnetworks:block/blueprint_terminal",
+    "front": "opticalnetworks:block/blueprint_terminal",
+    "front1": "opticalnetworks:block/blueprint_terminal_emissive",
+    "base": "opticalnetworks:block/base",
+    "side": "opticalnetworks:block/terminal_side"
+  },
+  "jmx": {
+    "textures": {
+      "particle": "opticalnetworks:block/blueprint_terminal",
+      "jmx_tex_front0": "opticalnetworks:block/blueprint_terminal",
+      "jmx_tex_front1": "opticalnetworks:block/blueprint_terminal_emissive"
+    },
+    "materials": {
+      "jmx_mat_front0": {
+        "layer0": "cutout_mipped"
+      },
+      "jmx_mat_front1": {
+        "layer1": "cutout_mipped",
+        "emissive1": true,
+        "ambient_occlusion1": false,
+        "diffuse1": false
+      }
+    }
+  }
+}

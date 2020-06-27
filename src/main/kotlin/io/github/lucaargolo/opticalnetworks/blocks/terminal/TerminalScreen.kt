@@ -4,18 +4,15 @@ import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
 import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT_C2S_PACKET
 import io.github.lucaargolo.opticalnetworks.network.UPDATE_TERMINAL_CONFIG_C2S_PACKET
-import io.github.lucaargolo.opticalnetworks.network.UPDATE_TERMINAL_CONFIG_S2C_PACKET
 import io.github.lucaargolo.opticalnetworks.network.terminalConfig
-import io.github.lucaargolo.opticalnetworks.utils.EnumButtonWidget
-import io.github.lucaargolo.opticalnetworks.utils.NetworkScreenHandler
-import io.github.lucaargolo.opticalnetworks.utils.PressableWidget
-import io.github.lucaargolo.opticalnetworks.utils.ScrollButtonWidget
+import io.github.lucaargolo.opticalnetworks.utils.*
+import io.github.lucaargolo.opticalnetworks.utils.widgets.EnumButtonWidget
+import io.github.lucaargolo.opticalnetworks.utils.widgets.ScrollButtonWidget
+import io.github.lucaargolo.opticalnetworks.utils.widgets.TerminalSlot
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawableHelper
-import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
 import net.minecraft.client.render.Tessellator
@@ -27,7 +24,6 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.screen.ScreenHandler
-import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
@@ -36,7 +32,7 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.registry.Registry
 
-open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, title: Text): HandledScreen<ScreenHandler>(handler, inventory, title) {
+open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, title: Text): CommonHandledScreen<ScreenHandler>(handler, inventory, title) {
 
     private var texture = Identifier("opticalnetworks:textures/gui/terminal.png")
 
@@ -57,13 +53,13 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
     protected var bHeight = 0
 
     private var hoverTerminalSlot: TerminalSlot? = null
-    private var hdl = handler as TerminalScreenHandlerInterface
+    private var hdl = handler as Terminal.IScreenHandler
 
     override fun tick() {
         searchBox?.tick()
     }
 
-    fun updateTerminalConfig() {
+    private fun updateTerminalConfig() {
         val passedData = PacketByteBuf(Unpooled.buffer())
         passedData.writeCompoundTag(terminalConfig.toTag(CompoundTag()))
         ClientSidePacketRegistry.INSTANCE.sendToServer(UPDATE_TERMINAL_CONFIG_C2S_PACKET, passedData)
@@ -93,7 +89,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         y = (height - bHeight) / 2
     }
 
-    open fun getSearchBoxSixe() = 80
+    open fun getSearchBoxSize() = 80
 
     override fun init() {
         super.init()
@@ -118,7 +114,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
             }
         }
 
-        searchBox = TextFieldWidget(textRenderer, x+81+(80-getSearchBoxSixe()), y+5, getSearchBoxSixe(), 9, LiteralText(""))
+        searchBox = TextFieldWidget(textRenderer, x+81+(80-getSearchBoxSize()), y+5, getSearchBoxSize(), 9, LiteralText(""))
         searchBox!!.setMaxLength(50)
         searchBox!!.setHasBorder(false)
         searchBox!!.setEditableColor(16777215)
@@ -153,7 +149,10 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         this.addButton(sortDirectionButton)
 
         scrollOffset = y + 18
-        scrollButton = ScrollButtonWidget(x+175, y + 18, ButtonWidget.PressAction{})
+        scrollButton = ScrollButtonWidget(
+            x + 175,
+            y + 18,
+            ButtonWidget.PressAction {})
         this.addButton(scrollButton)
     }
 
@@ -181,7 +180,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         scrollButton?.y = scrollOffset
 
         hoverTerminalSlot = null
-        hdl.terminalSlots.forEach {slot ->
+        hdl.terminalSlots.forEach { slot: TerminalSlot ->
             val i = slot.x + x - 1
             val j = slot.y + y - 1
             if(mouseX in (i..i+18) && mouseY in (j..j+18)) hoverTerminalSlot = slot
@@ -224,18 +223,6 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         }
 
         drawMouseoverTooltip(matrices, mouseX, mouseY)
-
-        this.buttons.forEach {
-            if(it is EnumButtonWidget<*>) {
-                if(it.isHovered) {
-                    val tooltip = mutableListOf<Text>()
-                    tooltip.add(LiteralText(it.state::class.simpleName))
-                    val macumba = it.state.name.substring(0, 1) + it.state.name.toLowerCase().substring(1, it.state.name.length)
-                    tooltip.add(LiteralText("Selected: $macumba"))
-                    renderTooltip(matrices, tooltip, mouseX, mouseY)
-                }
-            }
-        }
     }
 
     override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
@@ -286,9 +273,6 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
     }
 
     override fun mouseReleased(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        this.buttons.forEach {
-            if(it is PressableWidget) it.isPressed = false
-        }
         isScrolling = false
         return super.mouseReleased(mouseX, mouseY, button)
     }

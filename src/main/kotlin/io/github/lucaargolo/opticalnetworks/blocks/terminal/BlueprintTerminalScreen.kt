@@ -2,94 +2,177 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
-import io.github.lucaargolo.opticalnetworks.network.GHOST_SLOT_CLICK_C2S_PACKET
+import io.github.lucaargolo.opticalnetworks.network.CHANGE_BLUEPRINT_MODE
+import io.github.lucaargolo.opticalnetworks.network.CHANGE_BLUEPRINT_ITEM_TAG_MODE
+import io.github.lucaargolo.opticalnetworks.network.CHANGE_BLUEPRINT_NBT_TAG_MODE
 import io.github.lucaargolo.opticalnetworks.network.terminalConfig
-import io.github.lucaargolo.opticalnetworks.utils.GhostSlot
+import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
+import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
+import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawableHelper
-import net.minecraft.client.item.TooltipContext
+import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.entity.player.PlayerInventory
-import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
+import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
+import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 
 @Suppress("DuplicatedCode")
-class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, inventory: PlayerInventory, title: Text): CraftingTerminalScreen(handler, inventory, title) {
+abstract class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, inventory: PlayerInventory, title: Text): CraftingTerminalScreen(handler, inventory, title) {
 
-    override var texture2 = Identifier("opticalnetworks:textures/gui/blueprint_terminal.png")
+    class Crafting(handler: BlueprintTerminalScreenHandler, inventory: PlayerInventory, title: Text): BlueprintTerminalScreen(handler, inventory, title) {
 
-    override fun repositionSlots() {
-        val slotIterator = handler.slots.iterator()
-        while(slotIterator.hasNext()) {
-            val slot = slotIterator.next()
-            when(slot.id) {
-                0 -> (slot as SlotMixin).setY(94 + 18*(terminalConfig.size.rows-3))
-                in (1..27) -> (slot as SlotMixin).setY(103 + ((slot.id-1)/9) * 18 + 18*(terminalConfig.size.rows-4)+58)
-                in (28..36) -> (slot as SlotMixin).setY(161 + 18*(terminalConfig.size.rows-4)+58)
-                37 -> (slot as SlotMixin).setY(76 + 18*(terminalConfig.size.rows-3))
-                else -> (slot as SlotMixin).setY(76 + 18*(terminalConfig.size.rows-1))
+        override var texture2 = Identifier("opticalnetworks:textures/gui/blueprint_terminal_crafting.png")
+        override var name = "Crafting"
+        override var oppositeName = "Processing"
+
+        override fun repositionSlots() {
+            val slotIterator = handler.slots.iterator()
+            while(slotIterator.hasNext()) {
+                val slot = slotIterator.next()
+                when(slot.id) {
+                    0 -> (slot as SlotMixin).setY(94 + 18*(terminalConfig.size.rows-3))
+                    in (1..27) -> (slot as SlotMixin).setY(103 + ((slot.id-1)/9) * 18 + 18*(terminalConfig.size.rows-4)+58)
+                    in (28..36) -> (slot as SlotMixin).setY(161 + 18*(terminalConfig.size.rows-4)+58)
+                    37 -> (slot as SlotMixin).setY(76 + 18*(terminalConfig.size.rows-3))
+                    else -> (slot as SlotMixin).setY(76 + 18*(terminalConfig.size.rows-1))
+                }
+            }
+            val ghostSlotIterator = (this.handler as GhostSlot.IScreenHandler).ghostSlots.iterator()
+            while(ghostSlotIterator.hasNext()) {
+                val ghostSlot = ghostSlotIterator.next()
+                ghostSlot.y = 75 + (ghostSlot.index/3) * 18 + 18*(terminalConfig.size.rows-3)
             }
         }
-        val ghostSlotIterator = (this.handler as GhostSlot.GhostSlotScreenHandler).ghostSlots.iterator()
-        while(ghostSlotIterator.hasNext()) {
-            val ghostSlot = ghostSlotIterator.next()
-            ghostSlot.y = 75 + (ghostSlot.index/3) * 18 + 18*(terminalConfig.size.rows-3)
+
+    }
+
+    class Processing(handler: BlueprintTerminalScreenHandler, inventory: PlayerInventory, title: Text): BlueprintTerminalScreen(handler, inventory, title) {
+
+        override var texture2 = Identifier("opticalnetworks:textures/gui/blueprint_terminal_processing.png")
+        override var name = "Processing"
+        override var oppositeName = "Crafting"
+
+        override fun repositionSlots() {
+            val slotIterator = handler.slots.iterator()
+            while(slotIterator.hasNext()) {
+                val slot = slotIterator.next()
+                when(slot.id) {
+                    in (0..26) -> (slot as SlotMixin).setY(103 + ((slot.id)/9) * 18 + 18*(terminalConfig.size.rows-4)+58)
+                    in (27..35) -> (slot as SlotMixin).setY(161 + 18*(terminalConfig.size.rows-4)+58)
+                    36 -> (slot as SlotMixin).setY(76 + 18*(terminalConfig.size.rows-3))
+                    else -> (slot as SlotMixin).setY(76 + 18*(terminalConfig.size.rows-1))
+                }
+            }
+            val ghostSlotIterator = (this.handler as GhostSlot.IScreenHandler).ghostSlots.iterator()
+            while(ghostSlotIterator.hasNext()) {
+                val ghostSlot = ghostSlotIterator.next()
+                when(ghostSlot.index) {
+                    in (0..8) -> ghostSlot.y = 75 + (ghostSlot.index/3) * 18 + 18*(terminalConfig.size.rows-3)
+                    else -> ghostSlot.y = 93 + 18*((terminalConfig.size.rows-5)+(ghostSlot.index-8))
+                }
+            }
         }
+
+    }
+
+    private var changeMode: ButtonWidget? = null
+    private var changeItemTagMode: ButtonWidget? = null
+    private var changeNbtTagMode: ButtonWidget? = null
+
+    abstract var name: String
+    abstract var oppositeName: String
+
+    override fun init() {
+        super.init()
+        changeMode = object: ButtonWidget(x+15, y+85+18*(terminalConfig.size.rows-3), 8, 8, LiteralText(""), PressAction{
+            (changeMode as PressableWidget).isPressed = true
+            ClientSidePacketRegistry.INSTANCE.sendToServer(CHANGE_BLUEPRINT_MODE, PacketByteBuf(Unpooled.buffer()))
+        }), PressableWidget {
+            override var isPressed = false
+            override fun renderButton(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
+                RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
+                MinecraftClient.getInstance().textureManager.bindTexture(texture2)
+                if(isPressed) drawTexture(matrices, x, y, 201, 8, 8, 8)
+                else drawTexture(matrices, x, y, 193, 8, 8, 8)
+                if(isPressed || isHovered) DrawableHelper.fill(matrices, x + 1, y + 1, x + 7, y + 7, -2130706433)
+            }
+        }
+        this.addButton(changeMode!!)
+        changeItemTagMode = object: ButtonWidget(x+15, y+95+18*(terminalConfig.size.rows-3), 8, 8, LiteralText(""), PressAction{
+            (changeItemTagMode as PressableWidget).isPressed = true
+            ClientSidePacketRegistry.INSTANCE.sendToServer(CHANGE_BLUEPRINT_ITEM_TAG_MODE, PacketByteBuf(Unpooled.buffer()))
+        }), PressableWidget {
+            override var isPressed = false
+            override fun renderButton(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
+                RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
+                MinecraftClient.getInstance().textureManager.bindTexture(texture2)
+                if(((handler as BlueprintTerminalScreenHandler).entity as BlueprintTerminalBlockEntity).useItemTag) {
+                    if(isPressed) drawTexture(matrices, x, y, 201, 16, 8, 8)
+                    else drawTexture(matrices, x, y, 193, 16, 8, 8)
+                }else{
+                    if(isPressed) drawTexture(matrices, x, y, 217, 16, 8, 8)
+                    else drawTexture(matrices, x, y, 209, 16, 8, 8)
+                }
+                if(isPressed || isHovered) DrawableHelper.fill(matrices, x + 1, y + 1, x + 7, y + 7, -2130706433)
+            }
+        }
+        this.addButton(changeItemTagMode!!)
+        changeNbtTagMode = object: ButtonWidget(x+15, y+105+18*(terminalConfig.size.rows-3), 8, 8, LiteralText(""), PressAction{
+            (changeNbtTagMode as PressableWidget).isPressed = true
+            ClientSidePacketRegistry.INSTANCE.sendToServer(CHANGE_BLUEPRINT_NBT_TAG_MODE, PacketByteBuf(Unpooled.buffer()))
+        }), PressableWidget {
+            override var isPressed = false
+            override fun renderButton(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
+                RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f)
+                MinecraftClient.getInstance().textureManager.bindTexture(texture2)
+                if(((handler as BlueprintTerminalScreenHandler).entity as BlueprintTerminalBlockEntity).useNbtTag) {
+                    if(isPressed) drawTexture(matrices, x, y, 201, 24, 8, 8)
+                    else drawTexture(matrices, x, y, 193, 24, 8, 8)
+                }else{
+                    if(isPressed) drawTexture(matrices, x, y, 217, 24, 8, 8)
+                    else drawTexture(matrices, x, y, 209, 24, 8, 8)
+                }
+                if(isPressed || isHovered) DrawableHelper.fill(matrices, x + 1, y + 1, x + 7, y + 7, -2130706433)
+            }
+        }
+        this.addButton(changeNbtTagMode!!)
     }
 
     override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(matrices, mouseX, mouseY, delta)
-        drawGhostSlots(matrices, mouseX, mouseY, delta)
-    }
-
-    private fun drawGhostSlots(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
-        (this.handler as GhostSlot.GhostSlotScreenHandler).ghostSlots.forEach {
-            val i = x+it.x+1
-            val j = y+it.y+1
-            val stack = handler.getGhostInv().get(it.index)
-            if(mouseX in (i-1..i+17) && mouseY in (j-1..j+17)) DrawableHelper.fill(matrices, i, j, i + 16, j + 16, -2130706433)
-            stack.let {
-                RenderSystem.enableDepthTest()
-                client!!.itemRenderer.renderInGuiWithOverrides(playerInventory.player, stack, i, j)
-                if(mouseX in (i-1..i+17) && mouseY in (j-1..j+17) && playerInventory.cursorStack?.isEmpty == true && !stack.isEmpty) {
-                    renderTooltip(matrices, stack.getTooltip(playerInventory.player, TooltipContext.Default.NORMAL), mouseX, mouseY)
+        this.buttons.forEach {
+            if(it == changeMode) {
+                if(it.isHovered) {
+                    val tooltip = mutableListOf<Text>()
+                    tooltip.add(LiteralText("${Formatting.GOLD}$name"))
+                    tooltip.add(LiteralText("${Formatting.BLUE}Change to: ${Formatting.GRAY}$oppositeName"))
+                    renderTooltip(matrices, tooltip, mouseX, mouseY)
+                }
+            }
+            if(it == changeItemTagMode) {
+                if(it.isHovered) {
+                    val tooltip = mutableListOf<Text>()
+                    val useItemTag = ((handler as BlueprintTerminalScreenHandler).entity as BlueprintTerminalBlockEntity).useItemTag
+                    val tagMode = if(useItemTag) "${Formatting.GREEN}Using Item tags" else "${Formatting.RED}Not using Item tags"
+                    tooltip.add(LiteralText(tagMode))
+                    renderTooltip(matrices, tooltip, mouseX, mouseY)
+                }
+            }
+            if(it == changeNbtTagMode) {
+                if(it.isHovered) {
+                    val tooltip = mutableListOf<Text>()
+                    val useNbtTag = ((handler as BlueprintTerminalScreenHandler).entity as BlueprintTerminalBlockEntity).useNbtTag
+                    val tagMode = if(useNbtTag) "${Formatting.GREEN}Using NBT tags" else "${Formatting.RED}Not using NBT tags"
+                    tooltip.add(LiteralText(tagMode))
+                    renderTooltip(matrices, tooltip, mouseX, mouseY)
                 }
             }
         }
     }
-
-    override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
-        if(button in (0..1)) {
-            (this.handler as GhostSlot.GhostSlotScreenHandler).ghostSlots.forEach {
-                val i = x+it.x+1
-                val j = y+it.y+1
-                if(mouseX.toInt() in (i-1..i+17) && mouseY.toInt() in (j-1..j+17)) {
-                    if(button == 0) {
-                        val newStack = playerInventory.cursorStack?.copy()
-                        if (newStack != null && !newStack.isEmpty) {
-                            val passedData = PacketByteBuf(Unpooled.buffer())
-                            passedData.writeBlockPos(handler.getBlockEntity().pos)
-                            passedData.writeItemStack(newStack)
-                            passedData.writeInt(it.index)
-                            ClientSidePacketRegistry.INSTANCE.sendToServer(GHOST_SLOT_CLICK_C2S_PACKET, passedData)
-                        }
-                    }
-                    if(button == 1) {
-                        val passedData = PacketByteBuf(Unpooled.buffer())
-                        passedData.writeBlockPos(handler.getBlockEntity().pos)
-                        passedData.writeItemStack(ItemStack.EMPTY)
-                        passedData.writeInt(it.index)
-                        ClientSidePacketRegistry.INSTANCE.sendToServer(GHOST_SLOT_CLICK_C2S_PACKET, passedData)
-                    }
-
-                }
-            }
-        }
-        return super.mouseClicked(mouseX, mouseY, button)
-    }
-
 
 }

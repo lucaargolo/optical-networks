@@ -2,15 +2,18 @@ package io.github.lucaargolo.opticalnetworks.network
 
 import com.google.common.collect.Lists
 import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.blocks.BLUEPRINT_TERMINAL
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
+import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.CraftingTerminalScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.TerminalConfig
 import io.github.lucaargolo.opticalnetworks.mixed.ServerPlayerEntityMixed
-import io.github.lucaargolo.opticalnetworks.utils.GhostSlot
+import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
+import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
 import net.fabricmc.fabric.api.network.PacketContext
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
@@ -29,21 +32,48 @@ import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.registry.Registry
+import net.minecraft.util.registry.RegistryKey
 import java.awt.Color
 
 val NETWORK_INTERACT_C2S_PACKET = Identifier(MOD_ID, "network_interact")
+val REQUEST_COLOR_MAP_C2S_PACKET = Identifier(MOD_ID, "request_color_map")
 val GHOST_SLOT_CLICK_C2S_PACKET = Identifier(MOD_ID, "ghost_slot_click")
 val UPDATE_CABLE_BUTTONS_C2S_PACKET = Identifier(MOD_ID, "update_cable_buttons")
 val UPDATE_TERMINAL_BUTTONS_C2S_PACKET = Identifier(MOD_ID, "update_terminal_buttons")
 val UPDATE_TERMINAL_CONFIG_C2S_PACKET = Identifier(MOD_ID, "update_terminal_config_c2s")
-val CLEAR_TERMINAL_TABLE = Identifier(MOD_ID, "clear_terminal_item")
+val CLEAR_TERMINAL_TABLE = Identifier(MOD_ID, "clear_terminal_table")
+val CHANGE_BLUEPRINT_MODE = Identifier(MOD_ID, "change_blueprint_mode")
+val CHANGE_BLUEPRINT_ITEM_TAG_MODE = Identifier(MOD_ID, "change_blueprint_item_tag_mode")
+val CHANGE_BLUEPRINT_NBT_TAG_MODE = Identifier(MOD_ID, "change_blueprint_nbt_tag_mode")
 val MOVE_TERMINAL_ITEMS_PACKET = Identifier(MOD_ID, "move_terminal_items")
+val MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET = Identifier(MOD_ID, "move_blueprint_terminal_items")
 
 fun initNetworkPackets() {
 
     ServerSidePacketRegistry.INSTANCE.register(UPDATE_TERMINAL_CONFIG_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
         packetContext.run {
             attachedData.readCompoundTag()?.let {  (packetContext.player as ServerPlayerEntityMixed).`opticalNetworks$terminalConfig`.fromTag(it) }
+        }
+    }
+
+    ServerSidePacketRegistry.INSTANCE.register(REQUEST_COLOR_MAP_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+        val pos = attachedData.readBlockPos()
+        val wld = packetContext.player.world
+        packetContext.run {
+            val stt = getNetworkState(wld as ServerWorld)
+            var net = stt.getNetwork(wld, pos)
+            if(net == null) {
+                stt.updateBlock(wld, pos)
+                net = stt.getNetwork(wld, pos)
+            }
+            if(net != null) net.updateColor()
+            else {
+                val passedData = PacketByteBuf(Unpooled.buffer())
+                passedData.writeBlockPos(pos)
+                passedData.writeInt(0x666666)
+                ServerSidePacketRegistry.INSTANCE.sendToPlayer(packetContext.player, UPDATE_COLOR_MAP_S2C_PACKET, passedData)
+            }
         }
     }
 
@@ -81,13 +111,34 @@ fun initNetworkPackets() {
 
     ServerSidePacketRegistry.INSTANCE.register(GHOST_SLOT_CLICK_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
 
+        val btn = attachedData.readInt()
+        val shf = attachedData.readBoolean()
+        val qtf = attachedData.readBoolean()
         val pos = attachedData.readBlockPos()
         val stk = attachedData.readItemStack()
         val idx = attachedData.readInt()
 
         packetContext.taskQueue.execute {
             val entity = packetContext.player.world.getBlockEntity(pos)
-            if(entity is GhostSlot.GhostSlotBlockEntity) entity.ghostInv[idx] = stk
+            if(entity is GhostSlot.IBlockEntity) {
+                if(btn == 0 && !shf && !stk.isEmpty) {
+                    val dummyStack = stk.copy()
+                    dummyStack.count = if(qtf) dummyStack.count else 1
+                    entity.ghostInv[idx] = dummyStack
+                }
+                if(btn == 0 && shf && !stk.isEmpty) {
+                    val dummyStack = stk.copy()
+                    dummyStack.count = if(qtf) dummyStack.maxCount else 1
+                    entity.ghostInv[idx] = dummyStack
+                }
+                if(btn == 1 && !shf) {
+                    if(entity.ghostInv[idx].count <= 1)
+                        entity.ghostInv[idx] = ItemStack.EMPTY
+                    else
+                        entity.ghostInv[idx].decrement(1)
+                }
+                if(btn == 1 && shf) entity.ghostInv[idx] = ItemStack.EMPTY
+            }
             if(entity is BlockEntityClientSerializable) entity.sync()
             packetContext.player.currentScreenHandler.onContentChanged(null)
         }
@@ -144,17 +195,113 @@ fun initNetworkPackets() {
                 (screenHandler.entity as BlueprintTerminalBlockEntity).ghostInv.clear()
                 screenHandler.entity.markDirty()
                 screenHandler.entity.sync()
+                screenHandler.onContentChanged(null)
+            }
+        }
+    }
+
+    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_MODE) { packetContext: PacketContext, _ ->
+        val screenHandler = packetContext.player.currentScreenHandler
+
+        val identifier = getBlockId(BLUEPRINT_TERMINAL)!!
+        if(screenHandler is BlueprintTerminalScreenHandler.Crafting) {
+            packetContext.taskQueue.execute {
+                (screenHandler.entity as BlueprintTerminalBlockEntity).currentMode = 1
+                screenHandler.entity.ghostInv.clear()
+                screenHandler.entity.markDirty()
+                screenHandler.entity.sync()
+                val newIdentifier = Identifier(identifier.namespace, identifier.path+"_processing")
+                val tag = screenHandler.entity.currentNetwork!!.toTag(CompoundTag())
+                ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, packetContext.player as ServerPlayerEntity?) { buf ->
+                    buf.writeBlockPos(screenHandler.entity.pos)
+                    buf.writeCompoundTag(tag)
+                }
+            }
+        }
+        if(screenHandler is BlueprintTerminalScreenHandler.Processing) {
+            packetContext.taskQueue.execute {
+                (screenHandler.entity as BlueprintTerminalBlockEntity).currentMode = 0
+                screenHandler.entity.ghostInv.clear()
+                screenHandler.entity.markDirty()
+                screenHandler.entity.sync()
+                val newIdentifier = Identifier(identifier.namespace, identifier.path+"_crafting")
+                val tag = screenHandler.entity.currentNetwork!!.toTag(CompoundTag())
+                ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, packetContext.player as ServerPlayerEntity?) { buf ->
+                    buf.writeBlockPos(screenHandler.entity.pos)
+                    buf.writeCompoundTag(tag)
+                }
+            }
+        }
+    }
+
+    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_ITEM_TAG_MODE) { packetContext: PacketContext, _ ->
+        val screenHandler = packetContext.player.currentScreenHandler
+        packetContext.taskQueue.run {
+            if(screenHandler is BlueprintTerminalScreenHandler) {
+                val useItemTag = (screenHandler.entity as BlueprintTerminalBlockEntity).useItemTag
+                screenHandler.entity.useItemTag = !useItemTag
+                screenHandler.entity.markDirty()
+                screenHandler.entity.sync()
+                screenHandler.onContentChanged(null)
+            }
+        }
+    }
+
+    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_NBT_TAG_MODE) { packetContext: PacketContext, _ ->
+        val screenHandler = packetContext.player.currentScreenHandler
+        packetContext.taskQueue.run {
+            if(screenHandler is BlueprintTerminalScreenHandler) {
+                val useNbtTag = (screenHandler.entity as BlueprintTerminalBlockEntity).useNbtTag
+                screenHandler.entity.useNbtTag = !useNbtTag
+                screenHandler.entity.markDirty()
+                screenHandler.entity.sync()
+                screenHandler.onContentChanged(null)
             }
         }
     }
 
     if(!FabricLoader.getInstance().isModLoaded("roughlyenoughitems")) return
 
+    ServerSidePacketRegistry.INSTANCE.register(MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET) { packetContext: PacketContext, packetByteBuf: PacketByteBuf ->
+        val category = packetByteBuf.readIdentifier()
+        val player = packetContext.player as ServerPlayerEntity
+        val container = player.currentScreenHandler as BlueprintTerminalScreenHandler
+        val shift = packetByteBuf.readBoolean()
+        val input = mutableMapOf<Int, List<ItemStack>>()
+        val inputSize = packetByteBuf.readInt()
+        for (i in 0 until inputSize) {
+            val list: MutableList<ItemStack> = Lists.newArrayList()
+            val count = packetByteBuf.readInt()
+            for (j in 0 until count) {
+                list.add(packetByteBuf.readItemStack())
+            }
+            input[i] = list
+        }
+        val output = mutableListOf<ItemStack>()
+        val outputSize = packetByteBuf.readInt()
+        for (i in 0 until outputSize) {
+            output.add(packetByteBuf.readItemStack())
+        }
+        packetContext.taskQueue.execute {
+            val be = (container.entity as BlueprintTerminalBlockEntity)
+            input.forEach { (craftingSlotId, possibleStacks) ->
+                if(craftingSlotId < 9)
+                    be.ghostInv[craftingSlotId] = if(possibleStacks.isEmpty()) ItemStack.EMPTY else possibleStacks[0]
+            }
+            output.forEachIndexed { outputSlotId, outputStack ->
+                if(outputSlotId < 3)
+                    be.ghostInv[9+outputSlotId] = outputStack
+            }
+            be.markDirty()
+            be.sync()
+            container.onContentChanged(container.craftIn)
+        }
+    }
+
     ServerSidePacketRegistry.INSTANCE.register(MOVE_TERMINAL_ITEMS_PACKET) { packetContext: PacketContext, packetByteBuf: PacketByteBuf ->
         val category = packetByteBuf.readIdentifier()
         val player = packetContext.player as ServerPlayerEntity
         val container = player.currentScreenHandler as CraftingTerminalScreenHandler
-        val playerContainer = player.playerScreenHandler
         val shift = packetByteBuf.readBoolean()
         val input = mutableMapOf<Int, List<ItemStack>>()
         val mapSize = packetByteBuf.readInt()
@@ -188,7 +335,6 @@ fun initNetworkPackets() {
                 }
             }
         }
-        println(input)
     }
 
 }

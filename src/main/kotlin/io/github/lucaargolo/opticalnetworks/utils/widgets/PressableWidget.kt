@@ -1,4 +1,4 @@
-package io.github.lucaargolo.opticalnetworks.utils
+package io.github.lucaargolo.opticalnetworks.utils.widgets
 
 interface PressableWidget {
 

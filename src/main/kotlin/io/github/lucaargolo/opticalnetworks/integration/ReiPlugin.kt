@@ -11,7 +11,6 @@ import me.shedaniel.rei.api.EntryStack
 import me.shedaniel.rei.api.RecipeHelper
 import me.shedaniel.rei.api.plugins.REIPluginV0
 import me.shedaniel.rei.plugin.DefaultPlugin.CRAFTING
-import net.minecraft.client.gui.screen.ingame.HandledScreen
 import net.minecraft.util.Identifier
 
 class ReiPlugin: REIPluginV0 {
@@ -41,7 +40,7 @@ class ReiPlugin: REIPluginV0 {
 
     override fun registerOthers(recipeHelper: RecipeHelper) {
         recipeHelper.registerWorkingStations(CRAFTING, EntryStack.create(CRAFTING_TERMINAL));
-        recipeHelper.registerAutoCraftingHandler(CraftingTerminalCategoryHandler())
+        recipeHelper.registerAutoCraftingHandler(CustomCategoryHandler())
     }
 
 }

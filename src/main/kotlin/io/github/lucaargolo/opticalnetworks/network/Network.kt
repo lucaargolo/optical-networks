@@ -3,7 +3,7 @@ package io.github.lucaargolo.opticalnetworks.network
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRack
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRackBlockEntity
-import io.github.lucaargolo.opticalnetworks.items.basic.DiscDrive
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
@@ -47,7 +47,7 @@ class Network(val state: NetworkState?, var world: World) {
             if(it.value is DriveRack) {
                 if(world.getBlockEntity(it.key) == null) println(it.key)
                 (world.getBlockEntity(it.key) as DriveRackBlockEntity).inventory.forEach { invStack ->
-                    if(invStack.item is DiscDrive) {
+                    if(invStack.item is ItemDisc) {
                         val stackTag = invStack.orCreateTag
                         if(stackTag.contains("items")) {
                             val itemsTag = stackTag.get("items") as ListTag
@@ -114,8 +114,8 @@ class Network(val state: NetworkState?, var world: World) {
         var usedSpace = 0;
         getStorageByPriority().forEach {rackEntity ->
             rackEntity.inventory.forEach {rackStack ->
-                if(rackStack.item is DiscDrive) {
-                    totalSpace += (rackStack.item as DiscDrive).bytes
+                if(rackStack.item is ItemDisc) {
+                    totalSpace += (rackStack.item as ItemDisc).space
                     val stackTag = rackStack.orCreateTag
                     if(stackTag.contains("items")) {
                         val itemsTag = stackTag.get("items") as ListTag
@@ -132,7 +132,7 @@ class Network(val state: NetworkState?, var world: World) {
     fun removeStack(stack: ItemStack): Boolean {
         getStorageByPriority().forEach {rackEntity ->
             rackEntity.inventory.forEach {rackStack ->
-                if(rackStack.item is DiscDrive) {
+                if(rackStack.item is ItemDisc) {
                     val stackTag = rackStack.orCreateTag
                     if(stackTag.contains("items") && stack.count > 0) {
                         val itemsTag = stackTag.get("items") as ListTag
@@ -163,7 +163,7 @@ class Network(val state: NetworkState?, var world: World) {
     fun insertStack(stack: ItemStack): ItemStack {
         getStorageByPriority().forEach {rackEntity ->
             rackEntity.inventory.forEach {rackStack ->
-                if(rackStack.item is DiscDrive && !stack.isEmpty) {
+                if(rackStack.item is ItemDisc && !stack.isEmpty) {
                     val stackTag = rackStack.orCreateTag
                     if(!stackTag.contains("items")) {
                         val itemsTag = ListTag()
@@ -177,8 +177,8 @@ class Network(val state: NetworkState?, var world: World) {
                         itemsTag.forEach {
                             totalCount += getStackFromTag(it as CompoundTag).count
                         }
-                        if(totalCount < (rackStack.item as DiscDrive).bytes) {
-                            val availableBytes = (rackStack.item as DiscDrive).bytes - totalCount
+                        if(totalCount < (rackStack.item as ItemDisc).space) {
+                            val availableBytes = (rackStack.item as ItemDisc).space - totalCount
                             if(stack.count > availableBytes) {
                                 var added = false
                                 itemsTag.forEach {

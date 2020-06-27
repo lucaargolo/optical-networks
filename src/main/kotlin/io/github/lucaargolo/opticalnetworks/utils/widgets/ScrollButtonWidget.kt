@@ -1,14 +1,16 @@
-package io.github.lucaargolo.opticalnetworks.utils
+package io.github.lucaargolo.opticalnetworks.utils.widgets
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
 
-class ScrollButtonWidget(x: Int, y: Int, action: PressAction): ButtonWidget(x, y, 10, 15, LiteralText(""), action), PressableWidget {
+class ScrollButtonWidget(x: Int, y: Int, action: PressAction): ButtonWidget(x, y, 10, 15, LiteralText(""), action),
+    PressableWidget {
 
     private val DEFAULT: Identifier = Identifier(MOD_ID, "textures/gui/generic.png")
 
