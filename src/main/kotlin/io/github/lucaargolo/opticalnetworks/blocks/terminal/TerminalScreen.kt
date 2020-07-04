@@ -2,10 +2,11 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
-import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT_C2S_PACKET
-import io.github.lucaargolo.opticalnetworks.network.UPDATE_TERMINAL_CONFIG_C2S_PACKET
-import io.github.lucaargolo.opticalnetworks.network.terminalConfig
+import io.github.lucaargolo.opticalnetworks.packets.NETWORK_INTERACT_C2S_PACKET
+import io.github.lucaargolo.opticalnetworks.packets.UPDATE_TERMINAL_CONFIG_C2S_PACKET
+import io.github.lucaargolo.opticalnetworks.packets.terminalConfig
 import io.github.lucaargolo.opticalnetworks.utils.*
+import io.github.lucaargolo.opticalnetworks.utils.autocrafting.RequestCraftScreen
 import io.github.lucaargolo.opticalnetworks.utils.widgets.EnumButtonWidget
 import io.github.lucaargolo.opticalnetworks.utils.widgets.ScrollButtonWidget
 import io.github.lucaargolo.opticalnetworks.utils.widgets.TerminalSlot
@@ -32,7 +33,7 @@ import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 import net.minecraft.util.registry.Registry
 
-open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, title: Text): CommonHandledScreen<ScreenHandler>(handler, inventory, title) {
+open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, title: Text): ModHandledScreen<ScreenHandler>(handler, inventory, title) {
 
     private var texture = Identifier("opticalnetworks:textures/gui/terminal.png")
 
@@ -53,7 +54,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
     protected var bHeight = 0
 
     private var hoverTerminalSlot: TerminalSlot? = null
-    private var hdl = handler as Terminal.IScreenHandler
+    var hdl = handler as Terminal.IScreenHandler
 
     override fun tick() {
         searchBox?.tick()
@@ -149,10 +150,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         this.addButton(sortDirectionButton)
 
         scrollOffset = y + 18
-        scrollButton = ScrollButtonWidget(
-            x + 175,
-            y + 18,
-            ButtonWidget.PressAction {})
+        scrollButton = ScrollButtonWidget(x + 175, y + 18, ButtonWidget.PressAction {})
         this.addButton(scrollButton)
     }
 
@@ -188,13 +186,39 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
             slot.count = 0
         }
 
-        val allStacks = hdl.network.searchStacks(searchBox?.text ?: "")
+        val stacksAndCraftablesMap = mutableMapOf<ItemStack, Boolean>()
+
+        val allCraftables = hdl.network.getAvailableCraftables(searchBox?.text ?: "")
+        val allStacks = hdl.network.getAvailableStacks(searchBox?.text ?: "")
+
+        allCraftables.forEach { craftableStack ->
+            stacksAndCraftablesMap[craftableStack] = true
+        }
+
+        allStacks.forEach { storedStack ->
+            var found = false
+            val iterator = stacksAndCraftablesMap.iterator()
+            while(iterator.hasNext()) {
+                val entry = iterator.next()
+                if(entry.value && areStacksCompatible(
+                        storedStack,
+                        entry.key
+                    )
+                ) {
+                    found = true
+                    iterator.remove()
+                    stacksAndCraftablesMap[storedStack] = true
+                    break;
+                }
+            }
+            if(!found) stacksAndCraftablesMap[storedStack] = false
+        }
 
         var sortedStacks = when(sortButton?.state) {
-            TerminalConfig.Sort.NAME -> allStacks.sortedBy { TranslatableText(it.translationKey).string }
-            TerminalConfig.Sort.QUANTITY -> allStacks.sortedBy { it.count }.reversed()
-            TerminalConfig.Sort.ID -> allStacks.sortedBy { Registry.ITEM.getRawId(it.item) }
-            else -> allStacks
+            TerminalConfig.Sort.NAME -> stacksAndCraftablesMap.keys.sortedBy { TranslatableText(it.translationKey).string }
+            TerminalConfig.Sort.QUANTITY -> stacksAndCraftablesMap.keys.sortedBy { it.count }.reversed()
+            TerminalConfig.Sort.ID -> stacksAndCraftablesMap.keys.sortedBy { Registry.ITEM.getRawId(it.item) }
+            else -> stacksAndCraftablesMap.keys
         }
 
         if(sortDirectionButton?.state == TerminalConfig.SortDirection.DESCENDING) sortedStacks = sortedStacks.reversed()
@@ -212,8 +236,8 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
                 val slot = hdl.terminalSlots.getOrNull(index)
                 if(slot != null) {
                     slot.item = it
-                    slot.count = it.count
-
+                    slot.count = if(allCraftables.contains(it)) -1 else it.count
+                    slot.craftable = stacksAndCraftablesMap[it]!!
                     drawTerminalSlot(matrices, slot, mouseX, mouseY)
                 }
                 index++
@@ -259,15 +283,21 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         isScrolling = false
         isScrolling = if(scrollButton != null) (scrollable && mouseX > scrollButton!!.x && mouseX < scrollButton!!.x+10 && mouseY > scrollButton!!.y && mouseY <= scrollButton!!.y+15) else isScrolling
         if(hoverTerminalSlot != null && button in (0..1)) {
-            val passedData = PacketByteBuf(Unpooled.buffer())
-            passedData.writeUuid(hdl.network.id)
-            passedData.writeInt(1)
-            passedData.writeInt(button)
-            passedData.writeBoolean(InputUtil.isKeyPressed(client!!.window.handle, 340) || InputUtil.isKeyPressed(client!!.window.handle, 344))
-            val placeholderStack = hoverTerminalSlot!!.item.copy()
-            if (placeholderStack.count > placeholderStack.maxCount) placeholderStack.count = placeholderStack.maxCount
-            passedData.writeItemStack(placeholderStack)
-            ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT_C2S_PACKET, passedData)
+            if(hoverTerminalSlot!!.count == -1 && playerInventory.cursorStack.isEmpty) {
+                //Requesting an auto craft action
+                client!!.openScreen(RequestCraftScreen(this, hoverTerminalSlot!!.item))
+            }else{
+                //Requesting a regular item from the system
+                val passedData = PacketByteBuf(Unpooled.buffer())
+                passedData.writeUuid(hdl.network.id)
+                passedData.writeInt(1)
+                passedData.writeInt(button)
+                passedData.writeBoolean(InputUtil.isKeyPressed(client!!.window.handle, 340) || InputUtil.isKeyPressed(client!!.window.handle, 344))
+                val placeholderStack = hoverTerminalSlot!!.item.copy()
+                if (placeholderStack.count > placeholderStack.maxCount) placeholderStack.count = placeholderStack.maxCount
+                passedData.writeItemStack(placeholderStack)
+                ClientSidePacketRegistry.INSTANCE.sendToServer(NETWORK_INTERACT_C2S_PACKET, passedData)
+            }
         }
         return super.mouseClicked(mouseX, mouseY, button)
     }
@@ -291,7 +321,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         RenderSystem.enableDepthTest()
         this.itemRenderer.renderInGuiWithOverrides(this.client!!.player, slot.item, i, j)
 
-        val string = slot.getCountString()
+        val string = slot.getRenderString()
         val matrixStack = MatrixStack()
         val w = i*2f + 16f
         val p = j*2f + 16f
@@ -308,7 +338,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
             DrawableHelper.fill(matrices, i, j, i + 16, j + 16, -2130706433)
             if(playerInventory.cursorStack.isEmpty) {
                 val tooltip = getTooltipFromItem(slot.item)
-                tooltip.add(1, LiteralText("${Formatting.GRAY}Stored: ${slot.count}"))
+                if(slot.count != -1) tooltip.add(1, LiteralText("${Formatting.GRAY}Stored: ${slot.count}"))
                 renderTooltip(matrices, tooltip, mouseX, mouseY)
             }
         }

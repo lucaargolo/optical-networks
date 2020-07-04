@@ -8,7 +8,7 @@ import net.minecraft.util.shape.VoxelShape
 import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 
-class StorageBus: CableAttachment() {
+class StorageBus: CableWithEntity() {
 
     override fun getSpacificShape(state: BlockState): VoxelShape {
         val facing = state[Properties.FACING]

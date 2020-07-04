@@ -1,0 +1,10 @@
+{
+  "parent": "opticalnetworks:block/interface_directional",
+  "jmx": {
+    "materials": {
+      "jmx_mat1": {
+        "emissive1": false
+      }
+    }
+  }
+}

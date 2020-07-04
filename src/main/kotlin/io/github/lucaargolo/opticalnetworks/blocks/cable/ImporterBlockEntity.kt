@@ -1,9 +1,11 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable
 
-import io.github.lucaargolo.opticalnetworks.blocks.cable.attachment.AttachmentBlockEntity
-import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
+import io.github.lucaargolo.opticalnetworks.blocks.attachment.AttachmentBlockEntity
+import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import net.minecraft.block.Block
+import net.minecraft.inventory.SidedInventory
 import net.minecraft.item.ItemStack
+import net.minecraft.state.property.Properties
 
 class ImporterBlockEntity(block: Block): AttachmentBlockEntity(block) {
 
@@ -14,8 +16,8 @@ class ImporterBlockEntity(block: Block): AttachmentBlockEntity(block) {
             if(inventory != null) {
                 val slotMap = mutableMapOf<ItemStack, Int>()
                 val availableStacks = mutableListOf<ItemStack>()
-                (0 until inventory.size()).forEach {
-                    if(!inventory.getStack(it).isEmpty) {
+                (if(inventory is SidedInventory) inventory.getAvailableSlots(cachedState[Properties.FACING].opposite).toList() else (0 until inventory.size())).forEach {
+                    if(!inventory.getStack(it).isEmpty && (inventory !is SidedInventory || inventory.canExtract(it, inventory.getStack(it), cachedState[Properties.FACING].opposite))) {
                         slotMap[inventory.getStack(it)] = it
                         availableStacks.add(inventory.getStack(it))
                     }

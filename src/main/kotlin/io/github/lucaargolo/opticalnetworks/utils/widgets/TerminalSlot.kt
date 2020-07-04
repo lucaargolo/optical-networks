@@ -5,10 +5,11 @@ import net.minecraft.item.ItemStack
 class TerminalSlot(val x: Int, val y: Int) {
 
     var item: ItemStack = ItemStack.EMPTY
-    var count: Int = 0;
+    var count: Int = 0
+    var craftable: Boolean = false
 
-    fun getCountString(): String {
-        return when {
+    fun getRenderString(): String {
+        return if(craftable && count == -1) "Craft" else when {
             count <= 999 -> count.toString()
             count <= 999999 -> {
                 val s = ((count *10)/1000).toString()

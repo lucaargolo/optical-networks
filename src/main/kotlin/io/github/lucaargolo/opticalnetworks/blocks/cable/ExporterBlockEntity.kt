@@ -1,9 +1,10 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable
 
-import io.github.lucaargolo.opticalnetworks.blocks.cable.attachment.AttachmentBlockEntity
-import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
+import io.github.lucaargolo.opticalnetworks.blocks.attachment.AttachmentBlockEntity
+import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import net.minecraft.block.Block
 import net.minecraft.item.ItemStack
+import net.minecraft.state.property.Properties
 
 class ExporterBlockEntity(block: Block): AttachmentBlockEntity(block) {
 
@@ -12,7 +13,7 @@ class ExporterBlockEntity(block: Block): AttachmentBlockEntity(block) {
         if (world?.isClient == false && delayCount >= 20 && currentNetwork != null) {
             val inventory = getAttachedInventory()
             if(inventory != null) {
-                val availableStacks = currentNetwork!!.searchStacks("")
+                val availableStacks = currentNetwork!!.getAvailableStacks("")
                 inserted = false
                 if(listMode == List.WHITELIST) {
                     val sampleInv = getOrderedInv(getFilterInv())
@@ -23,7 +24,7 @@ class ExporterBlockEntity(block: Block): AttachmentBlockEntity(block) {
                             if (nbtMode == Nbt.MATCH && !ItemStack.areTagsEqual(filterStack, storedStack)) matches = false
                             if (damageMode == Damage.MATCH && !ItemStack.areItemsEqual(filterStack, storedStack)) matches = false
                             val matchedStack = if (matches) filterStack.copy() else ItemStack.EMPTY
-                            if(!matchedStack.isEmpty) tryToExport(matchedStack, inventory, sampleInv.size)
+                            if(!matchedStack.isEmpty) tryToExport(matchedStack, inventory, sampleInv.size, cachedState[Properties.FACING].opposite)
                             if(inserted) return@forEachIndexed
                         }
                     }
@@ -37,7 +38,7 @@ class ExporterBlockEntity(block: Block): AttachmentBlockEntity(block) {
                             if (damageMode == Damage.IGNORE && ItemStack.areItemsEqualIgnoreDamage(filterStack, storedStack)) matches = true
                         }
                         val matchedStack = if (!matches) filterStack.copy() else ItemStack.EMPTY
-                        if(!matchedStack.isEmpty) tryToExport(matchedStack, inventory, sampleInv.size)
+                        if(!matchedStack.isEmpty) tryToExport(matchedStack, inventory, sampleInv.size, cachedState[Properties.FACING].opposite)
                         if(inserted) return@forEachIndexed
                     }
                 }

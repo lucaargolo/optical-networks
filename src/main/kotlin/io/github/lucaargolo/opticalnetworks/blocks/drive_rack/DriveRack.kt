@@ -24,7 +24,7 @@ import net.minecraft.world.World
 class DriveRack: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL)) {
 
     init {
-        defaultState = stateManager.defaultState.with(Properties.HORIZONTAL_FACING, Direction.SOUTH)
+        defaultState = defaultState.with(Properties.HORIZONTAL_FACING, Direction.SOUTH)
     }
 
     override fun appendProperties(builder: StateManager.Builder<Block, BlockState>) {

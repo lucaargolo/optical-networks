@@ -1,0 +1,22 @@
+{
+  "multipart": [
+
+    {"when": {"directional" : "false", "enabled" : "true"}, "apply": { "model": "opticalnetworks:block/interface" }},
+    {"when": {"directional" : "false", "enabled" : "false"}, "apply": { "model": "opticalnetworks:block/interface_off" }},
+
+    {"when": {"facing" : "north", "enabled" : "true", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional", "x": 270}},
+    {"when": {"facing" : "south", "enabled" : "true", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional", "x": 90}},
+    {"when": {"facing" : "east", "enabled" : "true", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional", "x": 270, "y": 90}},
+    {"when": {"facing" : "west", "enabled" : "true", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional", "x": 90, "y": 90}},
+    {"when": {"facing" : "up", "enabled" : "true", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional", "x": 180}},
+    {"when": {"facing" : "down", "enabled" : "true", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional"}},
+
+    {"when": {"facing" : "north", "enabled" : "false", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional_off", "x": 270}},
+    {"when": {"facing" : "south", "enabled" : "false", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional_off", "x": 90}},
+    {"when": {"facing" : "east", "enabled" : "false", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional_off", "x": 270, "y": 90}},
+    {"when": {"facing" : "west", "enabled" : "false", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional_off", "x": 90, "y": 90}},
+    {"when": {"facing" : "up", "enabled" : "false", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional_off", "x": 180}},
+    {"when": {"facing" : "down", "enabled" : "false", "directional" : "true"}, "apply": { "model": "opticalnetworks:block/interface_directional_off"}}
+
+  ]
+}

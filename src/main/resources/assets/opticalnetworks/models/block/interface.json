@@ -1,0 +1,52 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "up":    { "texture": "#0", "cullface": "up", "jmx_tex0": "#jmx_tex0",  "jmx_material": "#jmx_mat0" },
+        "down":  { "texture": "#0", "cullface": "down", "jmx_tex0": "#jmx_tex0",  "jmx_material": "#jmx_mat0" },
+        "north": { "texture": "#0", "cullface": "north", "jmx_tex0": "#jmx_tex0",  "jmx_material": "#jmx_mat0" },
+        "south": { "texture": "#0", "cullface": "south", "jmx_tex0": "#jmx_tex0",  "jmx_material": "#jmx_mat0" },
+        "west":  { "texture": "#0", "cullface": "west", "jmx_tex0": "#jmx_tex0",  "jmx_material": "#jmx_mat0" },
+        "east":  { "texture": "#0", "cullface": "east", "jmx_tex0": "#jmx_tex0",  "jmx_material": "#jmx_mat0" }
+      }
+    },
+    {
+      "from": [ 0, 0, 0 ],
+      "to": [ 16, 16, 16 ],
+      "faces": {
+        "up":    { "texture": "#1", "tintindex": 0, "cullface": "up", "jmx_tex1": "#jmx_tex1",  "jmx_material": "#jmx_mat1" },
+        "down":  { "texture": "#1", "tintindex": 0, "cullface": "down", "jmx_tex1": "#jmx_tex1",  "jmx_material": "#jmx_mat1" },
+        "north": { "texture": "#1", "tintindex": 0, "cullface": "north", "jmx_tex1": "#jmx_tex1",  "jmx_material": "#jmx_mat1" },
+        "south": { "texture": "#1", "tintindex": 0, "cullface": "south", "jmx_tex1": "#jmx_tex1",  "jmx_material": "#jmx_mat1" },
+        "west":  { "texture": "#1", "tintindex": 0, "cullface": "west", "jmx_tex1": "#jmx_tex1",  "jmx_material": "#jmx_mat1" },
+        "east":  { "texture": "#1", "tintindex": 0, "cullface": "east", "jmx_tex1": "#jmx_tex1",  "jmx_material": "#jmx_mat1" }
+      }
+    }
+  ],
+  "textures": {
+    "particle": "opticalnetworks:block/interface",
+    "0": "opticalnetworks:block/interface",
+    "1": "opticalnetworks:block/interface_emissive"
+  },
+  "jmx": {
+    "textures": {
+      "particle": "opticalnetworks:block/interface",
+      "jmx_tex0": "opticalnetworks:block/interface",
+      "jmx_tex1": "opticalnetworks:block/interface_emissive"
+    },
+    "materials": {
+      "jmx_mat0": {
+        "layer0": "cutout_mipped"
+      },
+      "jmx_mat1": {
+        "layer1": "cutout_mipped",
+        "emissive1": true,
+        "ambient_occlusion1": false,
+        "diffuse1": false
+      }
+    }
+  }
+}

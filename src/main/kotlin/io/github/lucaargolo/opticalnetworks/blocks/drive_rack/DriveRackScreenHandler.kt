@@ -3,7 +3,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 import io.github.lucaargolo.opticalnetworks.blocks.DRIVE_RACK
 import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
 import io.github.lucaargolo.opticalnetworks.utils.BlockEntityInventory
-import io.github.lucaargolo.opticalnetworks.utils.handlers.BlockEntityScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack

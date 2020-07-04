@@ -2,9 +2,9 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import io.github.lucaargolo.opticalnetworks.blocks.CRAFTING_TERMINAL
 import io.github.lucaargolo.opticalnetworks.network.Network
-import io.github.lucaargolo.opticalnetworks.network.SYNCHRONIZE_LAST_RECIPE_PACKET
-import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
-import io.github.lucaargolo.opticalnetworks.utils.handlers.NetworkRecipeScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
+import io.github.lucaargolo.opticalnetworks.network.handlers.NetworkRecipeScreenHandler
+import io.github.lucaargolo.opticalnetworks.packets.SYNCHRONIZE_LAST_RECIPE_PACKET
 import io.github.lucaargolo.opticalnetworks.utils.widgets.TerminalSlot
 import io.netty.buffer.Unpooled
 import net.fabricmc.api.EnvType
@@ -100,7 +100,7 @@ class CraftingTerminalScreenHandler(syncId: Int, playerInventory: PlayerInventor
                 (1..10).forEach {
                     if(!slots[it].stack.isEmpty && slots[it].stack.count == 1) {
                         val dummyStack = slots[it].stack.copy()
-                        if(network.removeStack(dummyStack)) {
+                        if(network.removeStack(dummyStack).isEmpty) {
                             slots[it].stack.increment(1)
                         }
                     }
@@ -118,7 +118,7 @@ class CraftingTerminalScreenHandler(syncId: Int, playerInventory: PlayerInventor
                         if(!slots[it].stack.isEmpty && slots[it].stack.count < toCraft) {
                             val dummyStack = slots[it].stack.copy()
                             dummyStack.count = 1
-                            if(network.removeStack(dummyStack)) slots[it].stack.increment(1)
+                            if(network.removeStack(dummyStack).isEmpty) slots[it].stack.increment(1)
                         }
                     }
                 }
@@ -127,7 +127,7 @@ class CraftingTerminalScreenHandler(syncId: Int, playerInventory: PlayerInventor
         val result = super.onSlotClick(slotId, clickData, actionType, playerEntity)
         if(quickMoveCache.isNotEmpty()) {
             quickMoveCache.forEachIndexed { idx, stk ->
-                if(network.removeStack(stk.copy())) slots[idx+1].stack = stk
+                if(network.removeStack(stk.copy()).isEmpty) slots[idx+1].stack = stk
             }
         }
         return result

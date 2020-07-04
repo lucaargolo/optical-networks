@@ -1,5 +1,5 @@
 {
-	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
 	"textures": {
 		"0": "opticalnetworks:block/assembler_frame",
 		"1": "opticalnetworks:block/assembler_emissive",

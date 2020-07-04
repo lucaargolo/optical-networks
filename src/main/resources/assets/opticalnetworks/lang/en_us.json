@@ -1,6 +1,17 @@
 {
   "item.opticalnetworks.blueprint": "Blueprint",
+  "item.opticalnetworks.creative_cpu": "Creative CPU",
+  "item.opticalnetworks.and_cpu_mk1": "AND-CPU (Mk1)",
+  "item.opticalnetworks.and_cpu_mk2": "AND-CPU (Mk2)",
+  "item.opticalnetworks.and_cpu_mk3": "AND-CPU (Mk3)",
+  "item.opticalnetworks.int_cpu_mk1": "INT-CPU (Mk1)",
+  "item.opticalnetworks.int_cpu_mk2": "INT-CPU (Mk2)",
+  "item.opticalnetworks.int_cpu_mk3": "INT-CPU (Mk3)",
 
+  "screen.opticalnetworks.importer": "Importer",
+  "screen.opticalnetworks.exporter": "Exporter",
+  "screen.opticalnetworks.interface": "Interface",
+  "screen.opticalnetworks.crafting_computer": "Crafting Computer",
   "screen.opticalnetworks.assembler": "Assembler",
   "screen.opticalnetworks.blueprint_terminal": "Blueprint Terminal",
   "screen.opticalnetworks.crafting_terminal": "Crafting Terminal",

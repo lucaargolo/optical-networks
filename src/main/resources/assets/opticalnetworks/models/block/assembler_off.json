@@ -1,0 +1,10 @@
+{
+	"parent": "opticalnetworks:block/assembler",
+    "jmx": {
+      "materials": {
+        "jmx_1": {
+          "emissive1": false
+        }
+      }
+    }
+}

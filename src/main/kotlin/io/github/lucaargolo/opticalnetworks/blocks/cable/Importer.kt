@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
-class Importer: CableAttachment() {
+class Importer: CableWithEntity() {
 
     override fun createBlockEntity(world: BlockView?): BlockEntity? {
         return ImporterBlockEntity(this)

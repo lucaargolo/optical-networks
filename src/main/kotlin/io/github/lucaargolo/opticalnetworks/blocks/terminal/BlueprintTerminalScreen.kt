@@ -2,10 +2,10 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
-import io.github.lucaargolo.opticalnetworks.network.CHANGE_BLUEPRINT_MODE
-import io.github.lucaargolo.opticalnetworks.network.CHANGE_BLUEPRINT_ITEM_TAG_MODE
-import io.github.lucaargolo.opticalnetworks.network.CHANGE_BLUEPRINT_NBT_TAG_MODE
-import io.github.lucaargolo.opticalnetworks.network.terminalConfig
+import io.github.lucaargolo.opticalnetworks.packets.CHANGE_BLUEPRINT_ITEM_TAG_MODE
+import io.github.lucaargolo.opticalnetworks.packets.CHANGE_BLUEPRINT_MODE
+import io.github.lucaargolo.opticalnetworks.packets.CHANGE_BLUEPRINT_NBT_TAG_MODE
+import io.github.lucaargolo.opticalnetworks.packets.terminalConfig
 import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
 import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
 import io.netty.buffer.Unpooled

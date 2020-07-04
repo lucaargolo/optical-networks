@@ -7,7 +7,7 @@ import io.github.lucaargolo.opticalnetworks.mixin.ShapedRecipeMixin
 import io.github.lucaargolo.opticalnetworks.mixin.ShapelessRecipeMixin
 import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
-import io.github.lucaargolo.opticalnetworks.utils.handlers.NetworkRecipeScreenHandler
+import io.github.lucaargolo.opticalnetworks.network.handlers.NetworkRecipeScreenHandler
 import io.github.lucaargolo.opticalnetworks.utils.widgets.TerminalSlot
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment

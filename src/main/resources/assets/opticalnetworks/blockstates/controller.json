@@ -1,5 +1,6 @@
 {
   "variants": {
-    "": { "model": "opticalnetworks:block/controller" }
+    "enabled=true": { "model": "opticalnetworks:block/controller" },
+    "enabled=false": { "model":  "opticalnetworks:block/controller_off" }
   }
 }

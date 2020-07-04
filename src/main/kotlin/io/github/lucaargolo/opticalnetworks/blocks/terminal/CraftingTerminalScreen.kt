@@ -2,8 +2,8 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
-import io.github.lucaargolo.opticalnetworks.network.CLEAR_TERMINAL_TABLE
-import io.github.lucaargolo.opticalnetworks.network.terminalConfig
+import io.github.lucaargolo.opticalnetworks.packets.CLEAR_TERMINAL_TABLE
+import io.github.lucaargolo.opticalnetworks.packets.terminalConfig
 import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry

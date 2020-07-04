@@ -1,7 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.network.blocks
 
-import io.github.lucaargolo.opticalnetworks.network.NetworkState
-import io.github.lucaargolo.opticalnetworks.network.getNetworkState
+import io.github.lucaargolo.opticalnetworks.utils.getNetworkState
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.entity.LivingEntity
@@ -16,13 +15,13 @@ abstract class NetworkConnectable(settings: Settings): Block(settings) {
         if(world is ServerWorld) {
             val networkState = getNetworkState(world)
             networkState.updateBlock(world, pos)
-            println("Current state: ")
-            networkState.networks.forEach {
-                println("Network ${it.id}")
-                it.components.forEachIndexed { index, pair ->
-                    println("$index: ${pair}")
-                }
-            }
+//            println("Current state: ")
+//            networkState.networks.forEach {
+//                println("Network ${it.id}")
+//                it.components.forEachIndexed { index, pair ->
+//                    println("$index: ${pair}")
+//                }
+//            }
         }
         super.onPlaced(world, pos, state, placer, itemStack)
     }
@@ -32,13 +31,13 @@ abstract class NetworkConnectable(settings: Settings): Block(settings) {
             if(world is ServerWorld) {
                 val networkState = getNetworkState(world)
                 networkState.updateBlock(world, pos)
-                println("Current state: ")
-                networkState.networks.forEach {
-                    println("Network ${it.id}")
-                    it.components.forEachIndexed { index, pair ->
-                        println("$index: ${pair}")
-                    }
-                }
+//                println("Current state: ")
+//                networkState.networks.forEach {
+//                    println("Network ${it.id}")
+//                    it.components.forEachIndexed { index, pair ->
+//                        println("$index: ${pair}")
+//                    }
+//                }
             }
             super.onStateReplaced(state, world, pos, newState, notify)
         }

@@ -2,7 +2,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
-import io.github.lucaargolo.opticalnetworks.network.getStackFromTag
+import io.github.lucaargolo.opticalnetworks.utils.getStackFromTag
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.VertexConsumerProvider
@@ -41,6 +41,7 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
                     in (0.7f..1f) -> "2"
                     else -> "off"
                 }
+                if(!entity.cachedState[Properties.ENABLED]) state = "off"
                 if(Random().nextFloat() < 0.01f) state = "off"
                 val modelManager = MinecraftClient.getInstance().bakedModelManager
                 val baseModel = modelManager.getModel(ModelIdentifier(Identifier(MOD_ID, "cd_base"), ""))
@@ -77,7 +78,7 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
                     consumer.quad(matrixEntry, it, 1f, 1f, 1f, lightFront, overlay)
                 }
                 stateQuads.forEach {
-                    consumer.quad(matrixEntry, it, 1f, 1f, 1f, 15728880, overlay)
+                    consumer.quad(matrixEntry, it, 1f, 1f, 1f, if(!entity.cachedState[Properties.ENABLED]) lightFront else 15728880, overlay)
                 }
 
                 matrices.pop()

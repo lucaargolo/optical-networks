@@ -1,6 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.items
 
 import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.items.basic.CraftingDisc
 import io.github.lucaargolo.opticalnetworks.items.basic.CraftingProcessingUnit
 import io.github.lucaargolo.opticalnetworks.items.blueprint.Blueprint
 import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
@@ -14,14 +15,10 @@ val itemRegistry = mutableMapOf<Identifier, ModItem>()
 
 val NETWORK_ANALYSER = register(Identifier(MOD_ID, "network_analyser"), ModItem(NetworkAnalyser(Settings().group(ItemGroup.MISC))))
 
-val BLUEPRINT = register(Identifier(MOD_ID, "blueprint"), ModItem(
-    Blueprint(
-        Settings().group(ItemGroup.MISC)
-    )
-))
+val BLUEPRINT = register(Identifier(MOD_ID, "blueprint"), ModItem(Blueprint(Settings().group(ItemGroup.MISC))))
 val DISC_4K = register(Identifier(MOD_ID, "disc_4k"), ModItem(Item(Settings().group(ItemGroup.MISC))))
 val ITEM_DISC_4K = register(Identifier(MOD_ID, "item_disc_4k"), ModItem(ItemDisc(Settings().group(ItemGroup.MISC).maxCount(1), 4096)))
-val CRAFTING_DISC_4K = register(Identifier(MOD_ID, "crafting_disc_4k"), ModItem(ItemDisc(Settings().group(ItemGroup.MISC).maxCount(1), 4)))
+val CRAFTING_DISC_4K = register(Identifier(MOD_ID, "crafting_disc_4k"), ModItem(CraftingDisc(Settings().group(ItemGroup.MISC).maxCount(1), 4)))
 
 val AND_CPU_MK1 = register(Identifier(MOD_ID, "and_cpu_mk1"), ModItem(CraftingProcessingUnit(Settings().group(ItemGroup.MISC).maxCount(1), 2, 0.25F)))
 val AND_CPU_MK2 = register(Identifier(MOD_ID, "and_cpu_mk2"), ModItem(CraftingProcessingUnit(Settings().group(ItemGroup.MISC).maxCount(1), 2, 0.5F)))

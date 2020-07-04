@@ -4,9 +4,9 @@ import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScr
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.CraftingTerminalScreen
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.CraftingTerminalScreenHandler
-import io.github.lucaargolo.opticalnetworks.network.MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET
-import io.github.lucaargolo.opticalnetworks.network.MOVE_TERMINAL_ITEMS_PACKET
 import io.github.lucaargolo.opticalnetworks.network.Network
+import io.github.lucaargolo.opticalnetworks.packets.MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET
+import io.github.lucaargolo.opticalnetworks.packets.MOVE_TERMINAL_ITEMS_PACKET
 import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.ints.IntList
@@ -130,7 +130,7 @@ class CustomCategoryHandler: DefaultCategoryHandler() {
         for (stack in MinecraftClient.getInstance().player!!.inventory.main) {
             copyMain.add(stack.copy())
         }
-        copyMain.addAll(network.searchStacks(""))
+        copyMain.addAll(network.getAvailableStacks(""))
 
         val intList: IntList = IntArrayList()
         for (i in inputs.indices) {

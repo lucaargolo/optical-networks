@@ -3,7 +3,7 @@ package io.github.lucaargolo.opticalnetworks.items.blueprint
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.github.lucaargolo.opticalnetworks.MOD_ID
-import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
+import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import net.minecraft.client.item.TooltipContext
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
@@ -20,7 +20,7 @@ import net.minecraft.world.World
 
 class Blueprint(settings: Settings): Item(settings) {
 
-    override fun hasEnchantmentGlint(stack: ItemStack) = stack.hasTag() && stack.tag!!.contains("type")
+    override fun hasGlint(stack: ItemStack) = stack.hasTag() && stack.tag!!.contains("type")
 
     override fun appendTooltip(stack: ItemStack, world: World?, tooltip: MutableList<Text>, context: TooltipContext) {
         super.appendTooltip(stack, world, tooltip, context)
@@ -114,7 +114,11 @@ class Blueprint(settings: Settings): Item(settings) {
                         if(!outputStack.isEmpty) {
                             var found = false
                             stackList.forEach { stk ->
-                                if(areStacksCompatible(outputStack, stk)) {
+                                if(areStacksCompatible(
+                                        outputStack,
+                                        stk
+                                    )
+                                ) {
                                     stk.increment(outputStack.count)
                                     found = true
                                 }

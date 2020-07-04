@@ -1,32 +1,38 @@
 package io.github.lucaargolo.opticalnetworks.blocks
 
 import io.github.lucaargolo.opticalnetworks.MOD_ID
+import io.github.lucaargolo.opticalnetworks.blocks.`interface`.Interface
+import io.github.lucaargolo.opticalnetworks.blocks.`interface`.InterfaceBlockEntity
+import io.github.lucaargolo.opticalnetworks.blocks.`interface`.InterfaceScreen
+import io.github.lucaargolo.opticalnetworks.blocks.`interface`.InterfaceScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.assembler.Assembler
 import io.github.lucaargolo.opticalnetworks.blocks.assembler.AssemblerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.assembler.AssemblerScreen
 import io.github.lucaargolo.opticalnetworks.blocks.assembler.AssemblerScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.cable.*
-import io.github.lucaargolo.opticalnetworks.blocks.cable.attachment.AttachmentScreen
-import io.github.lucaargolo.opticalnetworks.blocks.cable.attachment.AttachmentScreenHandler
+import io.github.lucaargolo.opticalnetworks.blocks.attachment.AttachmentScreen
+import io.github.lucaargolo.opticalnetworks.blocks.attachment.AttachmentScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreen
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreenHandler
+import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputer
+import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerBlockEntity
+import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerScreen
+import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerScreenHandler
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.*
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.*
-import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT_C2S_PACKET
-import io.github.lucaargolo.opticalnetworks.network.REQUEST_COLOR_MAP_C2S_PACKET
-import io.github.lucaargolo.opticalnetworks.network.colorMap
-import io.netty.buffer.Unpooled
+import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
+import net.fabricmc.fabric.api.client.rendereregistry.v1.BlockEntityRendererRegistry
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
+import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.block.Block
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.block.entity.BlockEntityType
 import net.minecraft.client.color.block.BlockColorProvider
-import net.minecraft.network.PacketByteBuf
+import net.minecraft.client.render.RenderLayer
 import net.minecraft.util.Identifier
-import net.minecraft.world.World
 
 val blockRegistry = mutableMapOf<Identifier, ModBlock>()
 
@@ -39,6 +45,8 @@ val BLUEPRINT_TERMINAL = register(Identifier(MOD_ID, "blueprint_terminal"), ModB
 val CRAFTING_TERMINAL = register(Identifier(MOD_ID, "crafting_terminal"), ModBlockWithEntity<CraftingTerminalBlockEntity>(Terminal.Crafting(), CraftingTerminalScreenHandler::class, CraftingTerminalScreen::class))
 val TERMINAL = register(Identifier(MOD_ID, "terminal"), ModBlockWithEntity<BlockEntity>(Terminal(), TerminalScreenHandler::class, TerminalScreen::class))
 
+val INTERFACE = register(Identifier(MOD_ID, "interface"), ModBlockWithEntity<InterfaceBlockEntity>(Interface(), InterfaceScreenHandler::class, InterfaceScreen::class))
+val CRAFTING_COMPUTER = register(Identifier(MOD_ID, "crafting_computer"), ModBlockWithEntity<CraftingComputerBlockEntity>(CraftingComputer(), CraftingComputerScreenHandler::class, CraftingComputerScreen::class))
 val ASSEMBLER = register(Identifier(MOD_ID, "assembler"), ModBlockWithEntity<AssemblerBlockEntity>(Assembler(), AssemblerScreenHandler::class, AssemblerScreen::class))
 val CONTROLLER = register(Identifier(MOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller(), ControllerScreenHandler::class, ControllerScreen::class))
 val DRIVE_RACK = register(Identifier(MOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), DriveRackBlockEntityRenderer::class, DriveRackScreenHandler::class, DriveRackScreen::class))
@@ -69,14 +77,13 @@ fun initBlocks() {
 fun initBlocksClient() {
     blockRegistry.forEach{
         it.value.initClient(it.key)
+        if(!FabricLoader.getInstance().isModLoaded("json-model-extensions"))
+            BlockRenderLayerMap.INSTANCE.putBlock(it.value.block, RenderLayer.getTranslucent())
         ColorProviderRegistry.BLOCK.register(BlockColorProvider { state, world, pos, tintIndex ->
-            val color: Int? = colorMap[pos]?.rgb
-                if(color == null) {
-                    val passedData = PacketByteBuf(Unpooled.buffer())
-                    passedData.writeBlockPos(pos)
-                    ClientSidePacketRegistry.INSTANCE.sendToServer(REQUEST_COLOR_MAP_C2S_PACKET, passedData)
-                    0x666666
-                }else color
+            val be = world?.getBlockEntity(pos)
+            if(be is NetworkBlockEntity && be.currentColor != null)
+                be.currentColor!!.rgb
+            else 0x666666
         }, it.value.block)
     }
 }

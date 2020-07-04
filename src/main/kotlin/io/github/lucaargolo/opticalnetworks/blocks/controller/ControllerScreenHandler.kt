@@ -2,7 +2,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import io.github.lucaargolo.opticalnetworks.blocks.CONTROLLER
 import io.github.lucaargolo.opticalnetworks.network.Network
-import io.github.lucaargolo.opticalnetworks.utils.handlers.NetworkScreenHandler
+import io.github.lucaargolo.opticalnetworks.network.handlers.NetworkScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventories

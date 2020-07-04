@@ -17,7 +17,7 @@ import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
-open class Exporter: CableAttachment() {
+open class Exporter: CableWithEntity() {
 
     override fun createBlockEntity(world: BlockView?): BlockEntity? {
         return ExporterBlockEntity(this)

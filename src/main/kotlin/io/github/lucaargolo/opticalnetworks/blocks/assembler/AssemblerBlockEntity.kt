@@ -5,7 +5,7 @@ import com.google.gson.JsonParser
 import io.github.lucaargolo.opticalnetworks.items.blueprint.Blueprint
 import io.github.lucaargolo.opticalnetworks.mixin.ShapedRecipeMixin
 import io.github.lucaargolo.opticalnetworks.mixin.ShapelessRecipeMixin
-import io.github.lucaargolo.opticalnetworks.network.areStacksCompatible
+import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
@@ -64,7 +64,7 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
     var lastInputSlot = 0
 
     companion object {
-        const val PROCESSING_GOAL = 100
+        const val PROCESSING_GOAL = 0
     }
 
     var processingTime = 0
@@ -124,7 +124,10 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
     private fun isOutputValid(): Boolean {
         val stack = inventory[10]
         val output = ItemStack.fromTag(inventory[0].tag!!.getCompound("output"))
-        return (stack.isEmpty) || (areStacksCompatible(output, stack) && stack.count < stack.maxCount)
+        return (stack.isEmpty) || (areStacksCompatible(
+            output,
+            stack
+        ) && stack.count < stack.maxCount)
     }
 
     private fun isInputValid(): Boolean {
@@ -138,7 +141,8 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
                 val it = inputList.iterator()
                 while(it.hasNext()) {
                     val inputStk = it.next()
-                    aux = if(useNbt) areStacksCompatible(storedStk, inputStk) else storedStk.isItemEqualIgnoreDamage(inputStk)
+                    aux = if(useNbt) areStacksCompatible(storedStk, inputStk)
+                    else storedStk.isItemEqualIgnoreDamage(inputStk)
                     if(aux) {
                         it.remove()
                         break
@@ -150,7 +154,7 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
         return true
     }
 
-    private fun isBlueprintValid(): Boolean {
+    fun isBlueprintValid(): Boolean {
         val blueprintStack = inventory[0]
         return blueprintStack.item is Blueprint
                 && blueprintStack.hasTag()
@@ -178,7 +182,9 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
                         inventory.subList(1, 9).forEach { it.decrement(1) }
                         val stk = inventory[10]
                         if (stk.isEmpty) inventory[10] = tagRecipe.output.copy()
-                        else if (areStacksCompatible(stk, tagRecipe.output) && stk.count < stk.maxCount) inventory[10].increment(1)
+                        else if (areStacksCompatible(stk, tagRecipe.output) && stk.count+tagRecipe.output.count <= stk.maxCount) inventory[10].increment(tagRecipe.output.count)
+                        inventory[10] = currentNetwork!!.insertStack(inventory[10])
+                        currentNetwork!!.processingMachines.remove(pos)
                         processingTime = 0
                     }else processingTime++
                 }else processingTime = 0
@@ -249,13 +255,31 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
             val tagRecipe: CraftingRecipe? = if(tagRecipeOptional.isPresent && tagRecipeOptional.get() is CraftingRecipe) tagRecipeOptional.get() as CraftingRecipe else null
             tagRecipe?.let { recipe ->
                 var ingredients: DefaultedList<Ingredient>? = null
-                if (recipe is ShapedRecipe)
+                var width = 3
+                var height = 3
+                if (recipe is ShapedRecipe) {
                     ingredients = (recipe as ShapedRecipeMixin).inputs
+                    width = recipe.width
+                    height = recipe.height
+                }
                 if (recipe is ShapelessRecipe)
                     ingredients = (recipe as ShapelessRecipeMixin).input
                 ingredients?.let {
-                    if(slot <= ingredients.size) {
-                        val validStacks = getStringStacks(ingredients[slot-1].toJson().toString())
+                    val validSlots = linkedMapOf<Int, List<ItemStack>>()
+                    ingredients.forEachIndexed { idx, igd ->
+                        val validStacks = getStringStacks(igd.toJson().toString())
+                        if(validStacks.isNotEmpty()) {
+                            if(width < 3 && height < 3) {
+                                val row = (idx+1)/height
+                                val cu = idx+1+(row*(3-width))
+                                validSlots[cu] = validStacks
+                            }else{
+                                validSlots[idx+1] = validStacks
+                            }
+                        }
+                    }
+                    if(validSlots[slot] != null) {
+                        val validStacks = validSlots[slot]!!
                         validStacks.forEach { stk ->
                             if(areStacksCompatible(stk, stack)) {
                                 lastInputSlot = slot
@@ -277,14 +301,27 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
         var validSlots = mutableListOf<Int>()
         tagRecipe?.let { recipe ->
             var ingredients: DefaultedList<Ingredient>? = null
-            if(recipe is ShapedRecipe)
+            var width = 3
+            var height = 3
+            if(recipe is ShapedRecipe) {
                 ingredients = (recipe as ShapedRecipeMixin).inputs
+                width = recipe.width
+                height = recipe.height
+            }
             if(recipe is ShapelessRecipe)
                 ingredients = (recipe as ShapelessRecipeMixin).input
             ingredients?.let {
                 ingredients.forEachIndexed { idx, igd ->
                     val validStacks = getStringStacks(igd.toJson().toString())
-                    if(validStacks.isNotEmpty()) validSlots.add(idx+1)
+                    if(validStacks.isNotEmpty()) {
+                        if(width < 3 && height < 3) {
+                            val row = (idx+1)/height
+                            val cu = idx+1+(row*(3-width))
+                            validSlots.add(cu)
+                        }else{
+                            validSlots.add(idx+1)
+                        }
+                    }
                 }
             }
         }

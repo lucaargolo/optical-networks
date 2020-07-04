@@ -3,7 +3,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.assembler
 import io.github.lucaargolo.opticalnetworks.blocks.ASSEMBLER
 import io.github.lucaargolo.opticalnetworks.items.blueprint.Blueprint
 import io.github.lucaargolo.opticalnetworks.utils.BlockEntityInventory
-import io.github.lucaargolo.opticalnetworks.utils.handlers.BlockEntityScreenHandler
+import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.Inventory

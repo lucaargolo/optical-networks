@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import com.mojang.blaze3d.systems.RenderSystem
-import io.github.lucaargolo.opticalnetworks.utils.CommonHandledScreen
+import io.github.lucaargolo.opticalnetworks.utils.ModHandledScreen
 import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
 import io.github.lucaargolo.opticalnetworks.utils.widgets.ScrollButtonWidget
 import net.minecraft.block.Block
@@ -17,7 +17,7 @@ import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
 
-class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInventory, title: Text): CommonHandledScreen<ControllerScreenHandler>(handler, inventory, title) {
+class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInventory, title: Text): ModHandledScreen<ControllerScreenHandler>(handler, inventory, title) {
 
     private val generic = Identifier("opticalnetworks:textures/gui/generic.png")
     private val texture = Identifier("opticalnetworks:textures/gui/controller.png")
@@ -55,10 +55,7 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         this.addButton(colorButton)
 
         scrollOffset = y + 18
-        scrollButton = ScrollButtonWidget(
-            x + 158,
-            y + 18,
-            ButtonWidget.PressAction {})
+        scrollButton = ScrollButtonWidget(x + 158, y + 18, ButtonWidget.PressAction { if(scrollable) isScrolling = true})
         this.addButton(scrollButton)
     }
 
@@ -76,8 +73,8 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
 
 
         val activeSlots = blockMap.keys.size
-        scrollable = activeSlots/9f > 5f
-        scrollPages = (MathHelper.ceil(activeSlots/9f) - 5)
+        scrollable = activeSlots > 5f
+        scrollPages = activeSlots - 5
 
         val scrollPage = getScrollPage()
 
@@ -107,7 +104,7 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
     }
 
     private fun getScrollPage(): Int {
-        val scrollPercentage = (scrollOffset-(y+18)).toFloat()/(y+91+1-(y+18)).toFloat()
+        val scrollPercentage = (scrollOffset-(y+18)).toFloat()/(y+92-(y+18)).toFloat()
         return (scrollPercentage/(1f/ scrollPages)).toInt()
     }
 
@@ -116,20 +113,28 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         if(amount > 0) {
             if(scrollPage > 0) {
                 val desiredPercentage = (scrollPage-1f)/scrollPages
-                scrollOffset = MathHelper.ceil((desiredPercentage*(y+91-(y+18)) + (y+18)))
+                scrollOffset = MathHelper.ceil((desiredPercentage*(y+92-(y+18)) + (y+18)))
             }
         }else{
             if(scrollPage < scrollPages) {
                 val desiredPercentage = (scrollPage+1f)/scrollPages
-                scrollOffset = MathHelper.ceil(desiredPercentage*(y+91+1-(y+18)) + (y+18))
+                scrollOffset = MathHelper.ceil(desiredPercentage*(y+92-(y+18)) + (y+18))
             }
         }
         return super.mouseScrolled(mouseX, mouseY, amount)
     }
 
+    override fun mouseDragged(mouseX: Double, mouseY: Double, button: Int, deltaX: Double, deltaY: Double): Boolean {
+        return if (isScrolling) {
+            scrollOffset = MathHelper.clamp(mouseY.toInt(), y+18, y+92)
+            true
+        } else {
+            super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)
+        }
+    }
+
     override fun mouseClicked(mouseX: Double, mouseY: Double, button: Int): Boolean {
         isScrolling = false
-        isScrolling = if (scrollButton != null) (scrollable && mouseX > scrollButton!!.x && mouseX < scrollButton!!.x + 10 && mouseY > scrollButton!!.y && mouseY <= scrollButton!!.y + 15) else isScrolling
         return super.mouseClicked(mouseX, mouseY, button)
     }
 
@@ -141,16 +146,18 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
     private fun drawSpaceTooltip(matrices: MatrixStack?, mouseX: Int, mouseY: Int) {
         val pair = handler.network.getSpace()
         val texts = mutableListOf<Text>()
-        texts.add(LiteralText("${Formatting.BLUE} Storage:"))
+        texts.add(LiteralText("${Formatting.BLUE}Storage:"))
         texts.add(LiteralText("${pair.first} / ${pair.second}"))
         renderTooltip(matrices, texts, mouseX, mouseY)
     }
 
     private fun drawEnergyTooltip(matrices: MatrixStack?, mouseX: Int, mouseY: Int) {
-        val be = playerInventory.player.world.getBlockEntity(handler.network.controller)
+        val be = handler.network.getController()?.let {
+            playerInventory.player.world.getBlockEntity(it)
+        }
         if(be is ControllerBlockEntity) {
             val texts = mutableListOf<Text>()
-            texts.add(LiteralText("${Formatting.GOLD} Energy:"))
+            texts.add(LiteralText("${Formatting.GOLD}Energy:"))
             texts.add(LiteralText("${be.storedPower} / ${be.maxStoredPower}"))
             renderTooltip(matrices, texts, mouseX, mouseY)
         }
@@ -161,7 +168,7 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         client!!.textureManager.bindTexture(texture)
         drawTexture(matrices, x, y, 0, 0, bWidth, bHeight)
         client!!.textureManager.bindTexture(generic)
-        val be = handler.network.controller?.let {
+        val be = handler.network.getController()?.let {
             playerInventory.player.world.getBlockEntity(it)
         }
         if(be is ControllerBlockEntity) {

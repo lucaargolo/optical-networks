@@ -1,0 +1,10 @@
+{
+  "parent": "opticalnetworks:block/importer",
+  "jmx": {
+    "materials": {
+      "jmx_1": {
+        "emissive1": false
+      }
+    }
+  }
+}

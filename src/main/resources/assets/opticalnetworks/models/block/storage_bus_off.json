@@ -1,0 +1,10 @@
+{
+  "parent": "opticalnetworks:block/storage_bus",
+  "jmx": {
+    "materials": {
+      "jmx_1": {
+        "emissive1": false
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "parent": "opticalnetworks:block/blueprint_terminal",
+  "jmx": {
+    "materials": {
+      "jmx_mat_front1": {
+        "emissive1": false
+      }
+    }
+  }
+}

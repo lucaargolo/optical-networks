@@ -2,7 +2,7 @@ package io.github.lucaargolo.opticalnetworks.mixin;
 
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.TerminalConfig;
 import io.github.lucaargolo.opticalnetworks.mixed.ServerPlayerEntityMixed;
-import io.github.lucaargolo.opticalnetworks.network.NetworkPacketsKt;
+import io.github.lucaargolo.opticalnetworks.packets.PacketCompendiumKt;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 import net.minecraft.nbt.CompoundTag;
@@ -29,7 +29,7 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityMixed {
             PacketByteBuf passedData = new PacketByteBuf(Unpooled.buffer());
             passedData.writeCompoundTag(tcTag);
             try{
-                ServerSidePacketRegistry.INSTANCE.sendToPlayer((ServerPlayerEntity) ((Object) this), NetworkPacketsKt.getUPDATE_TERMINAL_CONFIG_S2C_PACKET(), passedData);
+                ServerSidePacketRegistry.INSTANCE.sendToPlayer((ServerPlayerEntity) ((Object) this), PacketCompendiumKt.getUPDATE_TERMINAL_CONFIG_S2C_PACKET(), passedData);
             }catch (Exception ignored) {}
         }
 

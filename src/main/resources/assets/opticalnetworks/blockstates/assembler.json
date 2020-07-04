@@ -1,5 +1,6 @@
 {
   "variants": {
-    "": { "model": "opticalnetworks:block/assembler" }
+    "enabled=true": { "model": "opticalnetworks:block/assembler" },
+    "enabled=false": { "model": "opticalnetworks:block/assembler_off" }
   }
 }

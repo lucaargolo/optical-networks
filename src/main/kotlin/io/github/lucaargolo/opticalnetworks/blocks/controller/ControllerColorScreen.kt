@@ -1,8 +1,8 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
-import io.github.lucaargolo.opticalnetworks.network.NETWORK_INTERACT_C2S_PACKET
 import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
+import io.github.lucaargolo.opticalnetworks.packets.NETWORK_INTERACT_C2S_PACKET
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
 import net.minecraft.client.gui.screen.Screen

@@ -3,7 +3,7 @@ package io.github.lucaargolo.opticalnetworks.integration
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.CRAFTING_TERMINAL
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.TerminalScreen
-import io.github.lucaargolo.opticalnetworks.network.terminalConfig
+import io.github.lucaargolo.opticalnetworks.packets.terminalConfig
 import me.shedaniel.math.Rectangle
 import me.shedaniel.rei.api.DisplayHelper
 import me.shedaniel.rei.api.DisplayHelper.DisplayBoundsHandler

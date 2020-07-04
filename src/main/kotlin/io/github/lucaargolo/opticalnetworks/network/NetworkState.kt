@@ -3,12 +3,8 @@ package io.github.lucaargolo.opticalnetworks.network
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.cable.Cable
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
-import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
 import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
-import io.netty.buffer.Unpooled
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.PacketByteBuf
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.PersistentState
@@ -63,65 +59,53 @@ class NetworkState: PersistentState(MOD_ID) {
         cacheNetworksPos()
     }
 
-    private fun createNetwork(world: World, pos: BlockPos): Network? {
+    private fun createNetwork(world: World, pos: BlockPos): Network {
         val n = Network(this, world);
-        val posSet = populateNetwork(mutableSetOf(), world, pos);
-        posSet.forEach {
-            val blockState = world.getBlockState(it)
+        val posSet = floodFillNetwork(mutableSetOf(), world, pos);
+        posSet.forEach { blockPos ->
+            val blockState = world.getBlockState(blockPos)
             val block = blockState.block
-            n.components.add(it)
-            n.componentsMap[it] = block;
             if(block is Controller) {
-                if(n.controller == null) n.controller = it
-                else n.controller = null
+                n.controllerList.add(blockPos)
             }
+            n.components.add(blockPos)
+            n.componentsMap[blockPos] = block
         }
-        if(n.controller != null) {
-            networks.add(n)
-            n.components.forEach { p ->
-                world.players.forEach { pl ->
-                    val passedData = PacketByteBuf(Unpooled.buffer())
-                    passedData.writeBlockPos(p)
-                    passedData.writeInt((world.getBlockEntity(n.controller) as ControllerBlockEntity).storedColor.rgb)
-                    ServerSidePacketRegistry.INSTANCE.sendToPlayer(pl, UPDATE_COLOR_MAP_S2C_PACKET, passedData)
-                }
-            }
-            return n;
-        }else{
-            return null;
-        }
+        networks.add(n)
+        n.updateColor()
+        return n
     }
 
-    private fun populateNetwork(nc: MutableSet<BlockPos>, world: World, pos: BlockPos): MutableSet<BlockPos> {
+    private fun floodFillNetwork(nc: MutableSet<BlockPos>, world: World, pos: BlockPos): MutableSet<BlockPos> {
         val blockState = world.getBlockState(pos)
         val block = blockState.block
         if(block !is NetworkConnectable) return nc;
         nc.add(pos)
         if(block is Cable) {
-            if(blockState[Properties.NORTH] && !nc.contains(pos.north())) nc.addAll(populateNetwork(nc, world, pos.north()))
-            if(blockState[Properties.SOUTH] && !nc.contains(pos.south())) nc.addAll(populateNetwork(nc, world, pos.south()))
-            if(blockState[Properties.EAST] && !nc.contains(pos.east())) nc.addAll(populateNetwork(nc, world, pos.east()))
-            if(blockState[Properties.WEST] && !nc.contains(pos.west())) nc.addAll(populateNetwork(nc, world, pos.west()))
-            if(blockState[Properties.UP] && !nc.contains(pos.up())) nc.addAll(populateNetwork(nc, world, pos.up()))
-            if(blockState[Properties.DOWN] && !nc.contains(pos.down())) nc.addAll(populateNetwork(nc, world, pos.down()))
+            if(blockState[Properties.NORTH] && !nc.contains(pos.north())) nc.addAll(floodFillNetwork(nc, world, pos.north()))
+            if(blockState[Properties.SOUTH] && !nc.contains(pos.south())) nc.addAll(floodFillNetwork(nc, world, pos.south()))
+            if(blockState[Properties.EAST] && !nc.contains(pos.east())) nc.addAll(floodFillNetwork(nc, world, pos.east()))
+            if(blockState[Properties.WEST] && !nc.contains(pos.west())) nc.addAll(floodFillNetwork(nc, world, pos.west()))
+            if(blockState[Properties.UP] && !nc.contains(pos.up())) nc.addAll(floodFillNetwork(nc, world, pos.up()))
+            if(blockState[Properties.DOWN] && !nc.contains(pos.down())) nc.addAll(floodFillNetwork(nc, world, pos.down()))
         }else{
-            if(!nc.contains(pos.north())) nc.addAll(populateNetwork(nc, world, pos.north()))
-            if(!nc.contains(pos.south())) nc.addAll(populateNetwork(nc, world, pos.south()))
-            if(!nc.contains(pos.east())) nc.addAll(populateNetwork(nc, world, pos.east()))
-            if(!nc.contains(pos.west())) nc.addAll(populateNetwork(nc, world, pos.west()))
-            if(!nc.contains(pos.up())) nc.addAll(populateNetwork(nc, world, pos.up()))
-            if(!nc.contains(pos.down())) nc.addAll(populateNetwork(nc, world, pos.down()))
+            if(!nc.contains(pos.north())) nc.addAll(floodFillNetwork(nc, world, pos.north()))
+            if(!nc.contains(pos.south())) nc.addAll(floodFillNetwork(nc, world, pos.south()))
+            if(!nc.contains(pos.east())) nc.addAll(floodFillNetwork(nc, world, pos.east()))
+            if(!nc.contains(pos.west())) nc.addAll(floodFillNetwork(nc, world, pos.west()))
+            if(!nc.contains(pos.up())) nc.addAll(floodFillNetwork(nc, world, pos.up()))
+            if(!nc.contains(pos.down())) nc.addAll(floodFillNetwork(nc, world, pos.down()))
         }
         return nc
     }
 
-    fun updateNetwork(network: Network) {
+    fun recreateNetwork(network: Network) {
         networks.remove(network)
         val updatedPos = mutableSetOf<BlockPos>()
         network.components.forEach {
             if(!updatedPos.contains(it)) {
                 val newNetwork = createNetwork(network.world, it);
-                newNetwork?.components?.let { componentPos ->
+                newNetwork.components.let { componentPos ->
                     updatedPos.addAll(componentPos)
                 }
             }

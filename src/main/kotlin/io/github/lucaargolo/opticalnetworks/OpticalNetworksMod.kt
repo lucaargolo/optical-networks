@@ -11,6 +11,8 @@ import io.github.lucaargolo.opticalnetworks.items.blueprint.BlueprintBakedModel
 import io.github.lucaargolo.opticalnetworks.items.initItems
 import io.github.lucaargolo.opticalnetworks.items.initItemsClient
 import io.github.lucaargolo.opticalnetworks.network.*
+import io.github.lucaargolo.opticalnetworks.packets.initNetworkPackets
+import io.github.lucaargolo.opticalnetworks.packets.initNetworkPacketsClient
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider
