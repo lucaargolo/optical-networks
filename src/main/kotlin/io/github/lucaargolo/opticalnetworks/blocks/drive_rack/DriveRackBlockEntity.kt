@@ -1,6 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
-import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDrive
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
@@ -49,7 +49,7 @@ class DriveRackBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
 
     override fun canExtract(slot: Int, stack: ItemStack?, dir: Direction?) = true
 
-    override fun canInsert(slot: Int, stack: ItemStack?, dir: Direction?) = (stack?.item is ItemDisc)
+    override fun canInsert(slot: Int, stack: ItemStack?, dir: Direction?) = (stack?.item is ItemDrive)
 
     override fun clear()  = inventory.clear()
 

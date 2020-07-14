@@ -3,25 +3,23 @@
 package io.github.lucaargolo.opticalnetworks
 
 import com.mojang.datafixers.util.Pair
-import io.github.lucaargolo.opticalnetworks.blocks.*
-import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreen
-import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreenHandler
-import io.github.lucaargolo.opticalnetworks.blocks.terminal.*
+import io.github.lucaargolo.opticalnetworks.blocks.BLUEPRINT_TERMINAL
+import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
+import io.github.lucaargolo.opticalnetworks.blocks.initBlocks
+import io.github.lucaargolo.opticalnetworks.blocks.initBlocksClient
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalBlockEntity
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScreen
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScreenHandler
 import io.github.lucaargolo.opticalnetworks.items.blueprint.BlueprintBakedModel
 import io.github.lucaargolo.opticalnetworks.items.initItems
 import io.github.lucaargolo.opticalnetworks.items.initItemsClient
-import io.github.lucaargolo.opticalnetworks.network.*
+import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPackets
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPacketsClient
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
-import net.fabricmc.fabric.api.network.PacketContext
-import net.minecraft.client.gui.screen.ingame.HandledScreen
-import net.minecraft.client.render.RenderLayer
 import net.minecraft.client.render.model.ModelBakeSettings
 import net.minecraft.client.render.model.ModelLoader
 import net.minecraft.client.render.model.UnbakedModel
@@ -31,9 +29,7 @@ import net.minecraft.client.util.SpriteIdentifier
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.resource.ResourceManager
-import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.ScreenHandlerContext
-import net.minecraft.text.LiteralText
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Identifier
 import java.util.function.Consumer
@@ -48,8 +44,7 @@ fun init() {
     ContainerProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_processing")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network(null, playerEntity.world);
-        network.fromTag(tag!!)
+        val network = Network.fromTag(tag!!, playerEntity.world);
         BlueprintTerminalScreenHandler.Processing(
             syncId,
             playerEntity.inventory,
@@ -62,8 +57,7 @@ fun init() {
     ContainerProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_crafting")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network(null, playerEntity.world);
-        network.fromTag(tag!!)
+        val network = Network.fromTag(tag!!, playerEntity.world);
         BlueprintTerminalScreenHandler.Crafting(
             syncId,
             playerEntity.inventory,
@@ -80,6 +74,7 @@ fun initClient() {
     initNetworkPacketsClient()
     ModelLoadingRegistry.INSTANCE.registerAppender { _: ResourceManager?, out: Consumer<ModelIdentifier?> ->
         out.accept(ModelIdentifier(Identifier(MOD_ID, "blueprint_regular"), "inventory"))
+        out.accept(ModelIdentifier(Identifier(MOD_ID, "cd_back"), ""))
         out.accept(ModelIdentifier(Identifier(MOD_ID, "cd_base"), ""))
         out.accept(ModelIdentifier(Identifier(MOD_ID, "cd_off"), ""))
         out.accept(ModelIdentifier(Identifier(MOD_ID, "cd_1"), ""))
@@ -103,8 +98,7 @@ fun initClient() {
     ScreenProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_processing")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network(null, playerEntity.world);
-        network.fromTag(tag!!)
+        val network = Network.fromTag(tag!!, playerEntity.world);
         BlueprintTerminalScreen.Processing(
             BlueprintTerminalScreenHandler.Processing(
                 syncId,
@@ -121,8 +115,7 @@ fun initClient() {
     ScreenProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_crafting")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network(null, playerEntity.world);
-        network.fromTag(tag!!)
+        val network = Network.fromTag(tag!!, playerEntity.world);
         BlueprintTerminalScreen.Crafting(
             BlueprintTerminalScreenHandler.Crafting(
                 syncId,

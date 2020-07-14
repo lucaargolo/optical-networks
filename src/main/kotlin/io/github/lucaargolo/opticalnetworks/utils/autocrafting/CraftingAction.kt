@@ -13,8 +13,9 @@ import net.minecraft.nbt.StringTag
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.MathHelper
+import net.minecraft.world.World
 
-class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, val craftables: MutableList<ItemStack>, val world: ServerWorld?, val craftStack: ItemStack, var requestedQuantity: Int) {
+class CraftingAction private constructor(val network: Network, val stacks: MutableList<ItemStack>, val craftables: MutableList<ItemStack>, val world: World, val craftStack: ItemStack, var requestedQuantity: Int) {
 
     enum class Type {
         CRAFTING,
@@ -47,7 +48,7 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
     //stacks that are going to get crafted
     val outputStacks: MutableList<ItemStack> = mutableListOf()
 
-    var craftableInfo = network?.getCraftableInfo(craftStack)
+    var craftableInfo = network.getCraftableInfo(craftStack)
     var machinePos = craftableInfo?.second
     var tag = craftableInfo?.first
     var type: Type = if(tag?.getString("type") == "crafting") Type.CRAFTING else Type.PROCESSING
@@ -56,10 +57,16 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
     var quantity = 0
 
     companion object {
-        fun fromTag(tag: CompoundTag): CraftingAction {
-            val action = CraftingAction(null, mutableListOf(), mutableListOf(), null, getStackFromTag(tag.getCompound("craftStack")), 0)
+        fun create(network: Network, stacks: MutableList<ItemStack>, craftables: MutableList<ItemStack>, world: World, craftStack: ItemStack, requestedQuantity: Int): CraftingAction {
+            val action = CraftingAction(network, stacks, craftables, world, craftStack, requestedQuantity)
+            action.properlyInitialize()
+            return action
+        }
+
+        fun fromTag(tag: CompoundTag, world: World): CraftingAction {
+            val action = CraftingAction(Network.fromTag(tag.getCompound("network"), world), mutableListOf(), mutableListOf(), world, getStackFromTag(tag.getCompound("craftStack")), 0)
             (tag.get("necessaryActions") as ListTag).forEach {
-                action.necessaryActions.add(fromTag(it as CompoundTag))
+                action.necessaryActions.add(fromTag(it as CompoundTag, world))
             }
             (tag.get("missingTags") as ListTag).forEach {
                 action.missingTags.add(TagStack.fromTag(it as CompoundTag))
@@ -67,8 +74,17 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
             (tag.get("missingStacks") as ListTag).forEach {
                 action.missingStacks.add(getStackFromTag(it as CompoundTag))
             }
-            (tag.get("inputStacks") as ListTag).forEach {
+            (tag.get("availableStacks") as ListTag).forEach {
                 action.availableStacks.add(getStackFromTag(it as CompoundTag))
+            }
+            (tag.get("craftStacks") as ListTag).forEach {
+                action.craftStacks.add(getStackFromTag(it as CompoundTag))
+            }
+            (tag.get("failedStacks") as ListTag).forEach {
+                action.failedStacks.add(getStackFromTag(it as CompoundTag))
+            }
+            (tag.get("inputStacks") as ListTag).forEach {
+                action.inputStacks.add(getStackFromTag(it as CompoundTag))
             }
             (tag.get("outputStacks") as ListTag).forEach {
                 action.outputStacks.add(getStackFromTag(it as CompoundTag))
@@ -80,13 +96,16 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
             action.type = if(tag.getString("type") == "crafting") Type.CRAFTING else Type.PROCESSING
             action.useNbt = tag.getBoolean("useNbt")
             action.quantity = tag.getInt("quantity")
+            action.state = State.values()[tag.getInt("state")]
             return action
         }
     }
 
     fun toTag(tag: CompoundTag): CompoundTag {
+        tag.put("network", network.toTag(CompoundTag()))
         tag.put("craftStack", getTagFromStack(craftStack))
         tag.putInt("quantity", quantity)
+        tag.putInt("state", State.values().indexOf(state))
         val necessaryActionsListTag = ListTag()
         necessaryActions.forEach {
             necessaryActionsListTag.add(it.toTag(CompoundTag()))
@@ -102,8 +121,23 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
             missingStacksListTag.add(getTagFromStack(it))
         }
         tag.put("missingStacks", missingStacksListTag)
-        val inputStacksListTag = ListTag()
+        val availableStacksListTag = ListTag()
         availableStacks.forEach {
+            availableStacksListTag.add(getTagFromStack(it))
+        }
+        tag.put("availableStacks", availableStacksListTag)
+        val craftStacksListTag = ListTag()
+        craftStacks.forEach {
+            craftStacksListTag.add(getTagFromStack(it))
+        }
+        tag.put("craftStacks", craftStacksListTag)
+        val failedStacksListTag = ListTag()
+        failedStacks.forEach {
+            failedStacksListTag.add(getTagFromStack(it))
+        }
+        tag.put("failedStacks", failedStacksListTag)
+        val inputStacksListTag = ListTag()
+        inputStacks.forEach {
             inputStacksListTag.add(getTagFromStack(it))
         }
         tag.put("inputStacks", inputStacksListTag)
@@ -116,11 +150,12 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
             tag.put("craftableInfoTag", it.first)
             tag.putLong("craftableInfoBlockPos", it.second.asLong())
         }
-
         return tag
     }
 
-    init {
+    private fun properlyInitialize() {
+        state = State.PROCESSING
+
         // outputssss
         if(tag?.get("output") is CompoundTag)
             outputStacks.add(ItemStack.fromTag(tag!!.getCompound("output")))
@@ -149,7 +184,7 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
                 if(helper.type == IngredientHelper.Type.TAG) {
                     val tagStack = TagStack(helper.tag!!)
                     var missing = quantity
-                    tagStack.getStacks(world!!).forEach {stk ->
+                    tagStack.getStacks(world as ServerWorld).forEach {stk ->
                         inputStacks.add(stk.copy())
                         stacks.forEach stored@{ storedStack ->
                             if(missing > 0 && areStacksCompatible(stk, storedStack)) {
@@ -257,12 +292,20 @@ class CraftingAction(val network: Network?, val stacks: MutableList<ItemStack>, 
         missingButCraftable.forEach {
             craftables.forEach {crfStk ->
                 if(areStacksCompatible(it.key, crfStk)) {
-                    necessaryActions.add(CraftingAction(network, stacks, craftables, world, it.key, it.value))
+                    necessaryActions.add(create(network, stacks, craftables, world, it.key, it.value))
                 }
             }
 
         }
 
+    }
+
+    fun getNeededSpace(): Int {
+        var neededSpace = 1
+        necessaryActions.forEach {
+            neededSpace += it.getNeededSpace()
+        }
+        return neededSpace
     }
 
 }

@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.blocks.crafting
 
 import io.github.lucaargolo.opticalnetworks.blocks.CRAFTING_COMPUTER
-import io.github.lucaargolo.opticalnetworks.items.basic.CraftingDisc
+import io.github.lucaargolo.opticalnetworks.items.basic.CraftingMemory
 import io.github.lucaargolo.opticalnetworks.items.basic.CraftingProcessingUnit
 import io.github.lucaargolo.opticalnetworks.utils.BlockEntityInventory
 import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
@@ -30,7 +30,7 @@ class CraftingComputerScreenHandler(syncId: Int, playerInventory: PlayerInventor
 
         (1..3).forEach {
             addSlot(object: Slot(inventory, it, 17 + (it-1) * 18, 63) {
-                override fun canInsert(stack: ItemStack) = stack.item is CraftingDisc
+                override fun canInsert(stack: ItemStack) = stack.item is CraftingMemory
             })
         }
 

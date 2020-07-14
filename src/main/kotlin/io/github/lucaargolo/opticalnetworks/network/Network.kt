@@ -10,7 +10,7 @@ import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputer
 import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRack
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRackBlockEntity
-import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDrive
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
 import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.utils.autocrafting.CraftingAction
@@ -23,6 +23,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.LongTag
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.BlockPos
@@ -30,7 +31,7 @@ import net.minecraft.util.registry.Registry
 import net.minecraft.world.World
 import java.util.*
 
-class Network(val state: NetworkState?, var world: World) {
+class Network private constructor(val state: NetworkState?, var world: World) {
 
     var id: UUID = UUID.randomUUID()
     var components = linkedSetOf<BlockPos>()
@@ -194,7 +195,7 @@ class Network(val state: NetworkState?, var world: World) {
                 val be = world.getBlockEntity(it.key)
                 if(be is DriveRackBlockEntity) {
                     be.inventory.forEach { invStack ->
-                        if (invStack.item is ItemDisc) {
+                        if (invStack.item is ItemDrive) {
                             val stackTag = invStack.orCreateTag
                             if (stackTag.contains("items")) {
                                 val itemsTag = stackTag.get("items") as ListTag
@@ -249,6 +250,17 @@ class Network(val state: NetworkState?, var world: World) {
         }
     }
 
+    fun getCraftingSpace(): Pair<Int, Int> {
+        var totalSpace = 0
+        var usedSpace = 0;
+        getCraftingCpus().forEach { craftingComputerEntity ->
+            val pair = craftingComputerEntity.getSpace()
+            usedSpace += pair.first
+            totalSpace += pair.second
+        }
+        return Pair(usedSpace, totalSpace)
+    }
+
     fun getCraftingCpus(): List<CraftingComputerBlockEntity> {
         val craftingCpuList = mutableListOf<CraftingComputerBlockEntity>()
         componentsMap.forEach {
@@ -274,15 +286,13 @@ class Network(val state: NetworkState?, var world: World) {
         var usedSpace = 0;
         getStorageByPriority().forEach {rackEntity ->
             rackEntity.inventory.forEach {rackStack ->
-                if(rackStack.item is ItemDisc) {
-                    totalSpace += (rackStack.item as ItemDisc).space
+                if(rackStack.item is ItemDrive) {
+                    totalSpace += (rackStack.item as ItemDrive).space
                     val stackTag = rackStack.orCreateTag
                     if(stackTag.contains("items")) {
                         val itemsTag = stackTag.get("items") as ListTag
                         itemsTag.forEach {
-                            usedSpace += getStackFromTag(
-                                it as CompoundTag
-                            ).count
+                            usedSpace += getStackFromTag(it as CompoundTag).count
                         }
                     }
                 }
@@ -294,7 +304,7 @@ class Network(val state: NetworkState?, var world: World) {
     fun removeStack(stack: ItemStack): ItemStack {
         getStorageByPriority().forEach {rackEntity ->
             rackEntity.inventory.forEach {rackStack ->
-                if(rackStack.item is ItemDisc) {
+                if(rackStack.item is ItemDrive) {
                     val stackTag = rackStack.orCreateTag
                     if(stackTag.contains("items") && stack.count > 0) {
                         val itemsTag = stackTag.get("items") as ListTag
@@ -311,9 +321,7 @@ class Network(val state: NetworkState?, var world: World) {
                                 }
                             }
                             if(!currentStack.isEmpty) newItemsTag.add(
-                                getTagFromStack(
-                                    currentStack
-                                )
+                                getTagFromStack(currentStack)
                             )
                         }
                         stackTag.put("items", newItemsTag)
@@ -330,7 +338,7 @@ class Network(val state: NetworkState?, var world: World) {
         val copyStack = stack.copy()
         getStorageByPriority().forEach {rackEntity ->
             rackEntity.inventory.forEach {rackStack ->
-                if(rackStack.item is ItemDisc && !stack.isEmpty) {
+                if(rackStack.item is ItemDrive && !stack.isEmpty) {
                     val stackTag = rackStack.orCreateTag
                     if(!stackTag.contains("items")) {
                         val itemsTag = ListTag()
@@ -344,8 +352,8 @@ class Network(val state: NetworkState?, var world: World) {
                         itemsTag.forEach {
                             totalCount += getStackFromTag(it as CompoundTag).count
                         }
-                        if(totalCount < (rackStack.item as ItemDisc).space) {
-                            val availableBytes = (rackStack.item as ItemDisc).space - totalCount
+                        if(totalCount < (rackStack.item as ItemDrive).space) {
+                            val availableBytes = (rackStack.item as ItemDrive).space - totalCount
                             if(stack.count > availableBytes) {
                                 var added = false
                                 itemsTag.forEach {
@@ -408,6 +416,7 @@ class Network(val state: NetworkState?, var world: World) {
     }
 
     fun toTag(tag: CompoundTag): CompoundTag {
+
         tag.putUuid("id", id)
         val controllersTag = ListTag()
         tag.put("controllers", controllersTag)
@@ -423,27 +432,40 @@ class Network(val state: NetworkState?, var world: World) {
         }
         tag.put("components", componentsTag)
         return tag;
+
     }
 
-    fun fromTag(tag: CompoundTag) {
-        components = linkedSetOf()
-        componentsMap = linkedMapOf()
-        controllerList = mutableListOf()
-        id = tag.getUuid("id")
-        val controllersTag = tag.get("controllers") as ListTag
-        controllersTag.forEach {
-            val pos = BlockPos.fromLong((it as LongTag).long)
-            if(world.getBlockEntity(pos) is ControllerBlockEntity)
-                controllerList.add(pos)
+    companion object {
+
+        fun create(state: NetworkState, world: ServerWorld): Network {
+            return Network(state, world)
         }
-        val componentsTag = tag.get("components") as ListTag
-        componentsTag.forEach {
-            val itTag = it as CompoundTag
-            val pos = BlockPos.fromLong(itTag.getLong("pos"))
-            val block = Registry.BLOCK.get(Identifier(itTag.getString("id")))
-            components.add(pos)
-            componentsMap[pos] = block
+
+        fun fromTag(tag: CompoundTag, world: World): Network {
+            val network = Network(null, world)
+            network.components = linkedSetOf()
+            network.componentsMap = linkedMapOf()
+            network.controllerList = mutableListOf()
+            network.id = tag.getUuid("id")
+            val controllersTag = tag.get("controllers") as ListTag
+            controllersTag.forEach {
+                val pos = BlockPos.fromLong((it as LongTag).long)
+                if(world.getBlockEntity(pos) is ControllerBlockEntity)
+                    network.controllerList.add(pos)
+            }
+            val componentsTag = tag.get("components") as ListTag
+            componentsTag.forEach {
+                val itTag = it as CompoundTag
+                val pos = BlockPos.fromLong(itTag.getLong("pos"))
+                val block = Registry.BLOCK.get(Identifier(itTag.getString("id")))
+                network.components.add(pos)
+                network.componentsMap[pos] = block
+            }
+            return network
         }
+
     }
+
+
 
 }

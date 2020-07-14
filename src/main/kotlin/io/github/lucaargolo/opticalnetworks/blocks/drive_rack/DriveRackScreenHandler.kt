@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
 import io.github.lucaargolo.opticalnetworks.blocks.DRIVE_RACK
-import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDrive
 import io.github.lucaargolo.opticalnetworks.utils.BlockEntityInventory
 import io.github.lucaargolo.opticalnetworks.utils.BlockEntityScreenHandler
 import net.minecraft.entity.player.PlayerEntity
@@ -27,7 +27,7 @@ class DriveRackScreenHandler(syncId: Int, playerInventory: PlayerInventory, enti
             (0..1).forEach { m ->
                 addSlot(object: Slot(inventory, m + n * 2, 35 + (m+2) * 18, n * 18) {
                     override fun canInsert(stack: ItemStack): Boolean {
-                        return stack.item is ItemDisc
+                        return stack.item is ItemDrive
                     }
                 })
             }

@@ -18,6 +18,8 @@ import net.minecraft.network.PacketByteBuf
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
+import net.minecraft.text.TranslatableText
+import net.minecraft.util.Formatting
 
 open class ModHandledScreen<T: ScreenHandler>(handler: T, inventory: PlayerInventory, title: Text): HandledScreen<T>(handler, inventory, title) {
 
@@ -28,12 +30,12 @@ open class ModHandledScreen<T: ScreenHandler>(handler: T, inventory: PlayerInven
         this.buttons.forEach {
             if(it is EnumButtonWidget<*>) {
                 if(it.isHovered) {
+                    DrawableHelper.fill(matrices, it.x+1, it.y+1, it.x+15, it.y+15, -2130706433)
                     val aux = zOffset
                     zOffset = 5000
                     val tooltip = mutableListOf<Text>()
-                    tooltip.add(LiteralText(it.state::class.simpleName))
-                    val macumba = it.state.name.substring(0, 1) + it.state.name.toLowerCase().substring(1, it.state.name.length)
-                    tooltip.add(LiteralText("Selected: $macumba"))
+                    tooltip.add(TranslatableText("tooltip.opticalnetworks.enum.${it.state::class.simpleName?.toLowerCase()}"))
+                    tooltip.add(TranslatableText("tooltip.opticalnetworks.selected").append(TranslatableText("tooltip.opticalnetworks.enum.${it.state::class.simpleName?.toLowerCase()}.${it.state.name.toLowerCase()}")))
                     renderTooltip(matrices, tooltip, mouseX, mouseY)
                     zOffset = aux
                 }

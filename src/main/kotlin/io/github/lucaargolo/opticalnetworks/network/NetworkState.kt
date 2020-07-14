@@ -5,6 +5,7 @@ import io.github.lucaargolo.opticalnetworks.blocks.cable.Cable
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
 import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.world.ServerWorld
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.PersistentState
@@ -23,7 +24,7 @@ class NetworkState: PersistentState(MOD_ID) {
         return null
     }
 
-    fun updateBlock(world: World, pos: BlockPos) {
+    fun updateBlock(world: ServerWorld, pos: BlockPos) {
         val blockState = world.getBlockState(pos)
         val block = blockState.block
         if(block is NetworkConnectable && getNetwork(world, pos) == null) {
@@ -59,8 +60,8 @@ class NetworkState: PersistentState(MOD_ID) {
         cacheNetworksPos()
     }
 
-    private fun createNetwork(world: World, pos: BlockPos): Network {
-        val n = Network(this, world);
+    private fun createNetwork(world: ServerWorld, pos: BlockPos): Network {
+        val n = Network.create(this, world);
         val posSet = floodFillNetwork(mutableSetOf(), world, pos);
         posSet.forEach { blockPos ->
             val blockState = world.getBlockState(blockPos)
@@ -104,7 +105,7 @@ class NetworkState: PersistentState(MOD_ID) {
         val updatedPos = mutableSetOf<BlockPos>()
         network.components.forEach {
             if(!updatedPos.contains(it)) {
-                val newNetwork = createNetwork(network.world, it);
+                val newNetwork = createNetwork(network.world as ServerWorld, it);
                 newNetwork.components.let { componentPos ->
                     updatedPos.addAll(componentPos)
                 }

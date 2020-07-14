@@ -1,7 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
 import io.github.lucaargolo.opticalnetworks.MOD_ID
-import io.github.lucaargolo.opticalnetworks.items.basic.ItemDisc
+import io.github.lucaargolo.opticalnetworks.items.basic.ItemDrive
 import io.github.lucaargolo.opticalnetworks.utils.getStackFromTag
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.render.RenderLayer
@@ -26,7 +26,7 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
         val inventory = entity.inventory
 
         inventory.forEachIndexed { i, it ->
-            if(it.item is ItemDisc) {
+            if(it.item is ItemDrive) {
                 val stackTag = it.orCreateTag
                 var usedSpace = 0
                 if(stackTag.contains("items")) {
@@ -35,7 +35,7 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
                         usedSpace += getStackFromTag(tag as CompoundTag).count
                     }
                 }
-                var state = when(usedSpace.toFloat()/(it.item as ItemDisc).space.toFloat()) {
+                var state = when(usedSpace.toFloat()/(it.item as ItemDrive).space.toFloat()) {
                     1f -> "3"
                     in (0f..0.7f) -> "1"
                     in (0.7f..1f) -> "2"
@@ -53,22 +53,22 @@ class DriveRackBlockEntityRenderer(dispatcher: BlockEntityRenderDispatcher): Blo
                 matrices.push()
 
                 if(facing == Direction.EAST) {
-                    matrices.translate(1.01, 0.8125-(0.1875*(i/2)), 0.8125+(if(i%2 == 0) -0.1875 else -0.625))
+                    matrices.translate(1.025, 0.8125-(0.1875*(i/2)), 0.8125+(if(i%2 == 0) -0.1875 else -0.625))
                     matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(270f))
                 }
 
                 if(facing == Direction.WEST) {
-                    matrices.translate(-0.01, 0.8125-(0.1875*(i/2)), 0.375+(if(i%2 != 0) 0.4375 else 0.0))
+                    matrices.translate(-0.025, 0.8125-(0.1875*(i/2)), 0.375+(if(i%2 != 0) 0.4375 else 0.0))
                     matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(90f))
                 }
 
                 if(facing == Direction.SOUTH) {
-                    matrices.translate(0.375+(if(i%2 != 0) 0.4375 else 0.0), 0.8125-(0.1875*(i/2)), 1.01)
+                    matrices.translate(0.375+(if(i%2 != 0) 0.4375 else 0.0), 0.8125-(0.1875*(i/2)), 1.025)
                     matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(180f))
                 }
 
                 if(facing == Direction.NORTH) {
-                    matrices.translate(0.8125+(if(i%2 == 0) -0.1875 else -0.625), 0.8125-(0.1875*(i/2)), -0.01)
+                    matrices.translate(0.8125+(if(i%2 == 0) -0.1875 else -0.625), 0.8125-(0.1875*(i/2)), -0.025)
                 }
 
                 val matrixEntry = matrices.peek()

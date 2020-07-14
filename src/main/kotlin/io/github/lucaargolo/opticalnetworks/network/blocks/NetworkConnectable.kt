@@ -15,13 +15,6 @@ abstract class NetworkConnectable(settings: Settings): Block(settings) {
         if(world is ServerWorld) {
             val networkState = getNetworkState(world)
             networkState.updateBlock(world, pos)
-//            println("Current state: ")
-//            networkState.networks.forEach {
-//                println("Network ${it.id}")
-//                it.components.forEachIndexed { index, pair ->
-//                    println("$index: ${pair}")
-//                }
-//            }
         }
         super.onPlaced(world, pos, state, placer, itemStack)
     }
@@ -31,13 +24,6 @@ abstract class NetworkConnectable(settings: Settings): Block(settings) {
             if(world is ServerWorld) {
                 val networkState = getNetworkState(world)
                 networkState.updateBlock(world, pos)
-//                println("Current state: ")
-//                networkState.networks.forEach {
-//                    println("Network ${it.id}")
-//                    it.components.forEachIndexed { index, pair ->
-//                        println("$index: ${pair}")
-//                    }
-//                }
             }
             super.onStateReplaced(state, world, pos, newState, notify)
         }

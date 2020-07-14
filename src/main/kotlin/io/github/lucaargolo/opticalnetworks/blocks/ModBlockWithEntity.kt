@@ -76,8 +76,7 @@ class ModBlockWithEntity<T: BlockEntity>: ModBlock {
                 val pos = packetByteBuf.readBlockPos()
                 if(container!!.java.constructors[0].parameterCount == 5) {
                     val tag = packetByteBuf.readCompoundTag()
-                    val network = Network(null, playerEntity.world);
-                    network.fromTag(tag!!)
+                    val network = Network.fromTag(tag!!, playerEntity.world);
                     container!!.java.constructors[0].newInstance(syncId,
                         playerEntity.inventory,
                         network,
@@ -87,8 +86,7 @@ class ModBlockWithEntity<T: BlockEntity>: ModBlock {
                 }else{
                     if(container!!.java.constructors[0].parameterTypes[2] == Network::class.java) {
                         val tag = packetByteBuf.readCompoundTag()
-                        val network = Network(null, playerEntity.world);
-                        network.fromTag(tag!!)
+                        val network = Network.fromTag(tag!!, playerEntity.world);
                         container!!.java.constructors[0].newInstance(syncId,
                             playerEntity.inventory,
                             network,
@@ -114,8 +112,7 @@ class ModBlockWithEntity<T: BlockEntity>: ModBlock {
                 val pos = packetByteBuf.readBlockPos()
                 if(container!!.java.constructors[0].parameterCount == 5) {
                     val tag = packetByteBuf.readCompoundTag()
-                    val network = Network(null, playerEntity.world);
-                    network.fromTag(tag!!)
+                    val network = Network.fromTag(tag!!, playerEntity.world);
                     containerScreen!!.java.constructors[0].newInstance(
                         container!!.java.constructors[0].newInstance(
                             syncId,
@@ -128,8 +125,7 @@ class ModBlockWithEntity<T: BlockEntity>: ModBlock {
                 }else{
                     if(container!!.java.constructors[0].parameterTypes[2] == Network::class.java) {
                         val tag = packetByteBuf.readCompoundTag()
-                        val network = Network(null, playerEntity.world);
-                        network.fromTag(tag!!)
+                        val network = Network.fromTag(tag!!, playerEntity.world);
                         containerScreen!!.java.constructors[0].newInstance(
                             container!!.java.constructors[0].newInstance(
                                 syncId,

@@ -18,6 +18,7 @@ import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
+import net.minecraft.text.TranslatableText
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 
@@ -27,8 +28,8 @@ abstract class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, 
     class Crafting(handler: BlueprintTerminalScreenHandler, inventory: PlayerInventory, title: Text): BlueprintTerminalScreen(handler, inventory, title) {
 
         override var texture2 = Identifier("opticalnetworks:textures/gui/blueprint_terminal_crafting.png")
-        override var name = "Crafting"
-        override var oppositeName = "Processing"
+        override var name = "crafting"
+        override var oppositeName = "processing"
 
         override fun repositionSlots() {
             val slotIterator = handler.slots.iterator()
@@ -54,8 +55,8 @@ abstract class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, 
     class Processing(handler: BlueprintTerminalScreenHandler, inventory: PlayerInventory, title: Text): BlueprintTerminalScreen(handler, inventory, title) {
 
         override var texture2 = Identifier("opticalnetworks:textures/gui/blueprint_terminal_processing.png")
-        override var name = "Processing"
-        override var oppositeName = "Crafting"
+        override var name = "processing"
+        override var oppositeName = "crafting"
 
         override fun repositionSlots() {
             val slotIterator = handler.slots.iterator()
@@ -149,8 +150,8 @@ abstract class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, 
             if(it == changeMode) {
                 if(it.isHovered) {
                     val tooltip = mutableListOf<Text>()
-                    tooltip.add(LiteralText("${Formatting.GOLD}$name"))
-                    tooltip.add(LiteralText("${Formatting.BLUE}Change to: ${Formatting.GRAY}$oppositeName"))
+                    tooltip.add(LiteralText("tooltip.opticalnetworks.$name"))
+                    tooltip.add(TranslatableText("tooltip.opticalnetworks.change_to").append(LiteralText("tooltip.opticalnetworks.$oppositeName")))
                     renderTooltip(matrices, tooltip, mouseX, mouseY)
                 }
             }
@@ -158,8 +159,8 @@ abstract class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, 
                 if(it.isHovered) {
                     val tooltip = mutableListOf<Text>()
                     val useItemTag = ((handler as BlueprintTerminalScreenHandler).entity as BlueprintTerminalBlockEntity).useItemTag
-                    val tagMode = if(useItemTag) "${Formatting.GREEN}Using Item tags" else "${Formatting.RED}Not using Item tags"
-                    tooltip.add(LiteralText(tagMode))
+                    val tagMode = if(useItemTag) TranslatableText("tooltip.opticalnetworks.using_item_tags") else TranslatableText("tooltip.opticalnetworks.not_using_item_tags")
+                    tooltip.add(tagMode)
                     renderTooltip(matrices, tooltip, mouseX, mouseY)
                 }
             }
@@ -167,8 +168,8 @@ abstract class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, 
                 if(it.isHovered) {
                     val tooltip = mutableListOf<Text>()
                     val useNbtTag = ((handler as BlueprintTerminalScreenHandler).entity as BlueprintTerminalBlockEntity).useNbtTag
-                    val tagMode = if(useNbtTag) "${Formatting.GREEN}Using NBT tags" else "${Formatting.RED}Not using NBT tags"
-                    tooltip.add(LiteralText(tagMode))
+                    val tagMode = if(useNbtTag) TranslatableText("tooltip.opticalnetworks.using_nbt_tag") else TranslatableText("tooltip.opticalnetworks.not_using_nbt_tag")
+                    tooltip.add(tagMode)
                     renderTooltip(matrices, tooltip, mouseX, mouseY)
                 }
             }

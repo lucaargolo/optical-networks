@@ -5,6 +5,8 @@ import com.google.gson.JsonParser
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import net.minecraft.client.item.TooltipContext
+import net.minecraft.entity.Entity
+import net.minecraft.entity.LivingEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.nbt.CompoundTag

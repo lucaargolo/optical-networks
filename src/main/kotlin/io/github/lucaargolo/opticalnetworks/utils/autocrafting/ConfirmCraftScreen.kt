@@ -15,6 +15,7 @@ import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.text.LiteralText
+import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Identifier
 import net.minecraft.util.math.MathHelper
@@ -42,6 +43,8 @@ class ConfirmCraftScreen(val terminal: TerminalScreen, val action: CraftingActio
     private val craftStacks = mutableListOf<ItemStack>()
     private val missingStacks = mutableListOf<ItemStack>()
     private val missingTags = mutableListOf<TagStack>()
+
+    private var failedCraftReason: Text = LiteralText("")
 
     private fun addStacks(action: CraftingAction) {
         action.availableStacks.forEach { inputStack ->
@@ -138,8 +141,18 @@ class ConfirmCraftScreen(val terminal: TerminalScreen, val action: CraftingActio
         this.drawBackground(matrices)
         if(missingTags.isNotEmpty() || missingStacks.isNotEmpty()) {
             craftButton?.active = false
+            failedCraftReason = TranslatableText("tooltip.opticalnetworks.missing_items")
         }
+        val pair = terminal.hdl.network.getCraftingSpace()
+        val availableSpace = pair.second-pair.first
+        val neededSpace = action.getNeededSpace()
+        if(craftButton?.active == true && neededSpace > availableSpace) {
+            craftButton?.active = false
+            failedCraftReason = TranslatableText("tooltip.opticalnetworks.missing_cpu")
+        }
+
         super.render(matrices, mouseX, mouseY, delta)
+
         scrollButton?.isPressed = this.isScrolling
         scrollButton?.y = scrollOffset
 
@@ -217,6 +230,10 @@ class ConfirmCraftScreen(val terminal: TerminalScreen, val action: CraftingActio
         if(mouseX in (x+11..x+27) && mouseY in (y+120..y+136)) {
             DrawableHelper.fill(matrices, x+11, y+120, x+27, y+136, -2130706433)
             renderTooltip(matrices, action.outputStacks[0], mouseX, mouseY)
+        }
+
+        if(craftButton != null && !craftButton!!.active && craftButton!!.isHovered) {
+            renderTooltip(matrices, failedCraftReason, mouseX, mouseY)
         }
 
         itemDelta += delta*0.1f

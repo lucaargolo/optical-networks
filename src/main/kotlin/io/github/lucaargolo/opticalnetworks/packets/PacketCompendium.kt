@@ -72,7 +72,7 @@ fun initNetworkPackets() {
         val craftStack = attachedData.readItemStack()
         val quantity = attachedData.readInt()
         if(network != null) packetContext.taskQueue.execute {
-            val craftAction = CraftingAction(network, network.getAvailableStacks(""), network.getAvailableCraftables(""), world, craftStack, quantity)
+            val craftAction = CraftingAction.create(network, network.getAvailableStacks(""), network.getAvailableCraftables(""), world, craftStack, quantity)
             craftingActionCache[packetContext.player.uuid] = craftAction
             val passedData = PacketByteBuf(Unpooled.buffer())
             passedData.writeCompoundTag(craftAction.toTag(CompoundTag()))
@@ -84,7 +84,7 @@ fun initNetworkPackets() {
         val action = craftingActionCache[packetContext.player.uuid]
         if(action != null) {
             packetContext.taskQueue.execute {
-                val cpuList = action.network!!.getCraftingCpus()
+                val cpuList = action.network.getCraftingCpus()
                 if(cpuList.isNotEmpty())
                     cpuList[0].addCrafting(action, 1)
             }
@@ -329,7 +329,7 @@ fun initNetworkPackets() {
         }
         packetContext.taskQueue.execute {
             clearTerminalTable(container, player)
-            val networkItems = container.network.getAvailableStacks("");
+            val networkItems = container.network.getAvailableStacks("")
             input.forEach { (craftingSlotId, possibleStacks) ->
                 val possibleItems = mutableListOf<Item>()
                 possibleStacks.forEach {
@@ -434,7 +434,7 @@ private fun executeMouseClicker(stack: ItemStack, playerInventory: PlayerInvento
                 }
             } else {
                 val oneStack = playerInventory.cursorStack.copy()
-                oneStack.count = 1;
+                oneStack.count = 1
                 val resultStack = network.insertStack(oneStack)
                 if (resultStack.isEmpty) {
                     playerInventory.cursorStack.decrement(1)
@@ -456,11 +456,11 @@ var terminalConfig = TerminalConfig()
 fun initNetworkPacketsClient() {
     ClientSidePacketRegistry.INSTANCE.register(OPEN_CONFIRM_CRAFT_S2C_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
         val tag = attachedData.readCompoundTag()
-        val action = CraftingAction.fromTag(tag!!)
+        val action = CraftingAction.fromTag(tag!!, packetContext.player.world)
         packetContext.taskQueue.execute {
             if(MinecraftClient.getInstance().currentScreen is RequestCraftScreen) {
                 val terminalScreen = (MinecraftClient.getInstance().currentScreen as RequestCraftScreen).terminal
-                MinecraftClient.getInstance().openScreen(ConfirmCraftScreen(terminalScreen as TerminalScreen, action))
+                MinecraftClient.getInstance().openScreen(ConfirmCraftScreen(terminalScreen, action))
             }
         }
     }

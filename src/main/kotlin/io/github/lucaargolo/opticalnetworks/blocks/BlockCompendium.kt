@@ -16,10 +16,7 @@ import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreen
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerScreenHandler
-import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputer
-import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerBlockEntity
-import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerScreen
-import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerScreenHandler
+import io.github.lucaargolo.opticalnetworks.blocks.crafting.*
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.*
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.*
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
@@ -46,7 +43,7 @@ val CRAFTING_TERMINAL = register(Identifier(MOD_ID, "crafting_terminal"), ModBlo
 val TERMINAL = register(Identifier(MOD_ID, "terminal"), ModBlockWithEntity<BlockEntity>(Terminal(), TerminalScreenHandler::class, TerminalScreen::class))
 
 val INTERFACE = register(Identifier(MOD_ID, "interface"), ModBlockWithEntity<InterfaceBlockEntity>(Interface(), InterfaceScreenHandler::class, InterfaceScreen::class))
-val CRAFTING_COMPUTER = register(Identifier(MOD_ID, "crafting_computer"), ModBlockWithEntity<CraftingComputerBlockEntity>(CraftingComputer(), CraftingComputerScreenHandler::class, CraftingComputerScreen::class))
+val CRAFTING_COMPUTER = register(Identifier(MOD_ID, "crafting_computer"), ModBlockWithEntity<CraftingComputerBlockEntity>(CraftingComputer(), CraftingComputerBlockEntityRenderer::class, CraftingComputerScreenHandler::class, CraftingComputerScreen::class))
 val ASSEMBLER = register(Identifier(MOD_ID, "assembler"), ModBlockWithEntity<AssemblerBlockEntity>(Assembler(), AssemblerScreenHandler::class, AssemblerScreen::class))
 val CONTROLLER = register(Identifier(MOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller(), ControllerScreenHandler::class, ControllerScreen::class))
 val DRIVE_RACK = register(Identifier(MOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), DriveRackBlockEntityRenderer::class, DriveRackScreenHandler::class, DriveRackScreen::class))

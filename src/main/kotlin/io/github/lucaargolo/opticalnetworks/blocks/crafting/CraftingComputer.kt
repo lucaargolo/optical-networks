@@ -5,6 +5,7 @@ import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectableWit
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.minecraft.block.Block
+import net.minecraft.block.BlockRenderType
 import net.minecraft.block.BlockState
 import net.minecraft.block.Material
 import net.minecraft.entity.player.PlayerEntity
@@ -46,6 +47,5 @@ class CraftingComputer: NetworkConnectableWithEntity(FabricBlockSettings.of(Mate
         }
         return ActionResult.SUCCESS
     }
-
 
 }
