@@ -1,6 +1,12 @@
 {
   "variants": {
-    "enabled=true": { "model": "opticalnetworks:block/controller" },
-    "enabled=false": { "model":  "opticalnetworks:block/controller_off" }
+    "pillar=none,enabled=true": { "model": "opticalnetworks:block/controller" },
+    "pillar=none,enabled=false": { "model":  "opticalnetworks:block/controller_off" },
+    "pillar=axis_x,enabled=true": { "model": "opticalnetworks:block/controller_pillar", "y": 90 },
+    "pillar=axis_x,enabled=false": { "model":  "opticalnetworks:block/controller_pillar_off", "y": 90 },
+    "pillar=axis_y,enabled=true": { "model": "opticalnetworks:block/controller_pillar", "x": 90},
+    "pillar=axis_y,enabled=false": { "model":  "opticalnetworks:block/controller_pillar_off", "x": 90},
+    "pillar=axis_z,enabled=true": { "model": "opticalnetworks:block/controller_pillar"},
+    "pillar=axis_z,enabled=false": { "model":  "opticalnetworks:block/controller_pillar_off"}
   }
 }

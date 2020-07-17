@@ -1,33 +1,37 @@
 package io.github.lucaargolo.opticalnetworks.items.basic
 
-import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
+import io.github.lucaargolo.opticalnetworks.network.blocks.CableConnectable
 import io.github.lucaargolo.opticalnetworks.utils.getNetworkState
 import net.minecraft.item.Item
 import net.minecraft.item.ItemUsageContext
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.LiteralText
 import net.minecraft.util.ActionResult
+import net.minecraft.util.Formatting
 
 class NetworkAnalyser(settings: Settings): Item(settings) {
 
     override fun useOnBlock(context: ItemUsageContext): ActionResult {
         val blockState = context.world.getBlockState(context.blockPos)
-        return if(blockState.block is NetworkConnectable) {
+        return if(blockState.block is CableConnectable) {
             if(!context.world.isClient) {
-                val networkState =
-                    getNetworkState(context.world as ServerWorld)
+                val networkState = getNetworkState(context.world as ServerWorld)
                 val network = networkState.getNetwork(context.world as ServerWorld, context.blockPos)
                 if(network == null) {
-                    context.player?.sendMessage(LiteralText("No network my dude"), false)
+                    context.player?.sendMessage(LiteralText("${Formatting.RED}No network has been found"), false)
                 }else{
-                    context.player?.sendMessage(LiteralText("Found network with ${network.components.size} components"), false)
-                    println("Current state: ")
-                    networkState.networks.forEach {
-                        println("Network ${it.id}")
-                        it.components.forEachIndexed { index, pair ->
-                            println("$index: ${pair}")
-                        }
+                    val text = LiteralText("${Formatting.GREEN}=============[Network Analyser]=============\n")
+                    text.append(LiteralText("${Formatting.BLUE}Network: ${Formatting.GOLD}${network.id.toString().substring(0, 8)}\n"))
+                    text.append(LiteralText("${Formatting.BLUE}Components: ${Formatting.GOLD}${network.components.size}\n"))
+                    text.append(LiteralText("${Formatting.BLUE}Controller Networks: ${Formatting.GOLD}${network.controllerNetworks.size}\n"))
+                    network.controllerNetworks.forEach {
+                        text.append(LiteralText("${Formatting.GRAY} - ${it.toString().substring(0, 8)}\n"))
                     }
+                    text.append(LiteralText("${Formatting.BLUE}Component Networks: ${Formatting.GOLD}${network.componentNetworks.size}\n"))
+                    network.componentNetworks.forEach {
+                        text.append(LiteralText("${Formatting.GRAY} - ${it.toString().substring(0, 8)}\n"))
+                    }
+                    context.player?.sendMessage(text, false)
                 }
             }
             ActionResult.SUCCESS

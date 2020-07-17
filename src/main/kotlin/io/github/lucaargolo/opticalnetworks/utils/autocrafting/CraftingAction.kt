@@ -1,6 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.utils.autocrafting
 
 import io.github.lucaargolo.opticalnetworks.network.Network
+import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.utils.getStackFromTag
 import io.github.lucaargolo.opticalnetworks.utils.getTagFromStack
@@ -64,7 +65,8 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
         }
 
         fun fromTag(tag: CompoundTag, world: World): CraftingAction {
-            val action = CraftingAction(Network.fromTag(tag.getCompound("network"), world), mutableListOf(), mutableListOf(), world, getStackFromTag(tag.getCompound("craftStack")), 0)
+            val state = NetworkState.fromTag(world, tag.getCompound("networkState"))
+            val action = CraftingAction(state.getNetworkByUUID(tag.getUuid("networkUUID")), mutableListOf(), mutableListOf(), world, getStackFromTag(tag.getCompound("craftStack")), 0)
             (tag.get("necessaryActions") as ListTag).forEach {
                 action.necessaryActions.add(fromTag(it as CompoundTag, world))
             }
@@ -102,7 +104,8 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
     }
 
     fun toTag(tag: CompoundTag): CompoundTag {
-        tag.put("network", network.toTag(CompoundTag()))
+        tag.put("networkState", network.state.toTag(CompoundTag()))
+        tag.putUuid("networkUUID", network.id)
         tag.put("craftStack", getTagFromStack(craftStack))
         tag.putInt("quantity", quantity)
         tag.putInt("state", State.values().indexOf(state))

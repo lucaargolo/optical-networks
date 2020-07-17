@@ -8,7 +8,7 @@ import net.minecraft.server.world.ServerWorld
 import net.minecraft.util.registry.Registry
 
 fun getNetworkState(world: ServerWorld): NetworkState {
-    return world.persistentStateManager.getOrCreate( { NetworkState() }, MOD_ID)
+    return world.persistentStateManager.getOrCreate( { NetworkState(world) }, MOD_ID)
 }
 
 fun getStackFromTag(tag: CompoundTag): ItemStack {

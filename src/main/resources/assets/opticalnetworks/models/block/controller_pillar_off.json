@@ -1,0 +1,16 @@
+{
+  "parent": "opticalnetworks:block/controller_pillar",
+  "textures": {
+    "all1": "opticalnetworks:block/controller_pillar_off"
+  },
+  "jmx": {
+    "textures": {
+      "jmx_tex_all1": "opticalnetworks:block/controller_pillar_off"
+    },
+    "materials": {
+      "jmx_mat_all1": {
+        "emissive1": false
+      }
+    }
+  }
+}

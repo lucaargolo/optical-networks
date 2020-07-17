@@ -29,6 +29,10 @@ repositories {
             password ""
         }
     }
+    maven {
+        name = "CottonMC"
+        url = "https://server.bbkr.space/artifactory/libs-release"
+    }
 }
 
 dependencies {
@@ -39,20 +43,16 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-
-    //modImplementation "TechReborn:TechReborn-1.16:${project.techreborn_version}"
+    modImplementation "TechReborn:TechReborn-1.16:${project.techreborn_version}"
     modImplementation "io.github.prospector:modmenu:${project.modmenu_version}"
     modImplementation "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
-    modImplementation("grondag:darkness-${project.mc_tag}:${project.darkness_version}.+") { transitive = false}
+    modImplementation("grondag:darkness-${project.mc_tag}:${project.darkness_version}.+") { transitive = false }
+
+    modApi ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false }
+    modApi ("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false }
 
     modApi "teamreborn:energy:${project.energy_version}"
     include "teamreborn:energy:${project.energy_version}"
-
-    modApi ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false}
-    include "grondag:frex-${project.mc_tag}:${project.frex_version}.+"
-
-    modApi ("grondag:jmx-${project.mc_tag}:${project.jmx_version}.+") { transitive = false}
-    include "grondag:jmx-${project.mc_tag}:${project.jmx_version}.+"
 }
 
 processResources {

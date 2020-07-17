@@ -1,9 +1,12 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
+import io.github.lucaargolo.opticalnetworks.utils.getNetworkState
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.server.world.ServerWorld
+import net.minecraft.state.property.Properties
 import team.reborn.energy.EnergySide
 import team.reborn.energy.EnergyStorage
 import team.reborn.energy.EnergyTier

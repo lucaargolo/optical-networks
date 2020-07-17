@@ -32,10 +32,8 @@ import net.minecraft.world.World
 open class Terminal: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL)) {
 
     interface IScreenHandler {
-
         val network: Network
         val terminalSlots: MutableList<TerminalSlot>
-
     }
 
     init {
@@ -53,15 +51,15 @@ open class Terminal: NetworkConnectableWithEntity(FabricBlockSettings.of(Materia
 
     override fun onUse(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, hit: BlockHitResult): ActionResult {
         if (!world.isClient) {
-            val network = getNetworkState(world as ServerWorld)
-                .getNetwork(world, pos)
+            val network = getNetworkState(world as ServerWorld).getNetwork(world, pos)
             if(network == null) {
                 player.sendMessage(LiteralText("This is not a valid network!"), false)
             }else{
-                val tag = network.toTag(CompoundTag())
+                val tag = network.getOptimizedStateTag(CompoundTag())
                 ContainerProviderRegistry.INSTANCE.openContainer(getBlockId(this), player as ServerPlayerEntity?) { buf ->
                     buf.writeBlockPos(pos)
                     buf.writeCompoundTag(tag)
+                    buf.writeUuid(network.id)
                 }
             }
 
@@ -82,8 +80,7 @@ open class Terminal: NetworkConnectableWithEntity(FabricBlockSettings.of(Materia
 
         override fun onUse(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, hit: BlockHitResult): ActionResult {
             if (!world.isClient) {
-                val network = getNetworkState(world as ServerWorld)
-                    .getNetwork(world, pos)
+                val network = getNetworkState(world as ServerWorld).getNetwork(world, pos)
                 val entity = world.getBlockEntity(pos)
                 if(network == null || entity !is BlueprintTerminalBlockEntity) {
                     player.sendMessage(LiteralText("This is not a valid network!"), false)
@@ -92,17 +89,19 @@ open class Terminal: NetworkConnectableWithEntity(FabricBlockSettings.of(Materia
                     val mode = entity.currentMode
                     if(mode == 0) {
                         val newIdentifier = Identifier(identifier.namespace, identifier.path+"_crafting")
-                        val tag = network.toTag(CompoundTag())
+                        val tag = network.getOptimizedStateTag(CompoundTag())
                         ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, player as ServerPlayerEntity?) { buf ->
                             buf.writeBlockPos(pos)
                             buf.writeCompoundTag(tag)
+                            buf.writeUuid(network.id)
                         }
                     }else {
                         val newIdentifier = Identifier(identifier.namespace, identifier.path+"_processing")
-                        val tag = network.toTag(CompoundTag())
+                        val tag = network.getOptimizedStateTag(CompoundTag())
                         ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, player as ServerPlayerEntity?) { buf ->
                             buf.writeBlockPos(pos)
                             buf.writeCompoundTag(tag)
+                            buf.writeUuid(network.id)
                         }
                     }
 

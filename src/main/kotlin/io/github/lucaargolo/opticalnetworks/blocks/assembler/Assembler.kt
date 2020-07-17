@@ -24,10 +24,9 @@ class Assembler: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.ME
 
     override fun onUse(state: BlockState, world: World, pos: BlockPos, player: PlayerEntity, hand: Hand, hit: BlockHitResult): ActionResult {
         if (!world.isClient) {
-            ContainerProviderRegistry.INSTANCE.openContainer(
-                getBlockId(this),
-                player as ServerPlayerEntity?
-            ) { buf -> buf.writeBlockPos(pos) }
+            ContainerProviderRegistry.INSTANCE.openContainer(getBlockId(this), player as ServerPlayerEntity?) { buf ->
+                buf.writeBlockPos(pos)
+            }
         }
         return ActionResult.SUCCESS
     }

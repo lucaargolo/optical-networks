@@ -45,10 +45,9 @@ class DriveRack: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.ME
                 (world.getBlockEntity(pos) as DriveRackBlockEntity).markDirty()
                 (world.getBlockEntity(pos) as BlockEntityClientSerializable).sync()
             }else{
-                ContainerProviderRegistry.INSTANCE.openContainer(
-                    getBlockId(this),
-                    player as ServerPlayerEntity?
-                ) { buf -> buf.writeBlockPos(pos) }
+                ContainerProviderRegistry.INSTANCE.openContainer(getBlockId(this), player as ServerPlayerEntity?) { buf ->
+                    buf.writeBlockPos(pos)
+                }
             }
         }
         return ActionResult.SUCCESS

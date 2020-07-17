@@ -51,10 +51,9 @@ class Interface: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.ME
             if(player.isSneaking) {
                 world.setBlockState(pos, state.with(DIRECTIONAL, !state[DIRECTIONAL]))
             }else{
-                ContainerProviderRegistry.INSTANCE.openContainer(
-                    getBlockId(this),
-                    player as ServerPlayerEntity?
-                ) { buf -> buf.writeBlockPos(pos) }
+                ContainerProviderRegistry.INSTANCE.openContainer(getBlockId(this), player as ServerPlayerEntity?) { buf ->
+                    buf.writeBlockPos(pos)
+                }
             }
         }
         return ActionResult.SUCCESS

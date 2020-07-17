@@ -16,6 +16,7 @@ import io.github.lucaargolo.opticalnetworks.utils.autocrafting.RequestCraftScree
 import io.github.lucaargolo.opticalnetworks.utils.getNetworkState
 import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
 import io.netty.buffer.Unpooled
+import kotlinx.coroutines.newFixedThreadPoolContext
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
@@ -392,8 +393,8 @@ private fun changeColor(string: String, player: PlayerEntity, network: Network) 
     if(color == null) {
         player.sendMessage(LiteralText("Could not parse color!"), false)
     }else{
-        val be = network.getController()?.let { player.world.getBlockEntity(it) }
-        if(be is ControllerBlockEntity) be.currentColor = color
+        val be = player.world.getBlockEntity(network.getController()) as? ControllerBlockEntity
+        be?.currentColor = color
         network.updateColor()
     }
 }
@@ -404,9 +405,7 @@ private fun executeMouseClicker(stack: ItemStack, playerInventory: PlayerInvento
         playerInventory.insertStack(stack)
         if(!stack.isEmpty) copyStack.decrement(stack.count)
         network.removeStack(copyStack)
-        if(!copyStack.isEmpty) {
-            playerInventory.main.remove(copyStack)
-        }
+        if(!copyStack.isEmpty) playerInventory.main.remove(copyStack)
     }else{
         if (button == 0) {
             if (playerInventory.cursorStack.isEmpty) {

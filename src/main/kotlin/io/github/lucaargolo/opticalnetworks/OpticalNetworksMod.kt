@@ -14,6 +14,7 @@ import io.github.lucaargolo.opticalnetworks.items.blueprint.BlueprintBakedModel
 import io.github.lucaargolo.opticalnetworks.items.initItems
 import io.github.lucaargolo.opticalnetworks.items.initItemsClient
 import io.github.lucaargolo.opticalnetworks.network.Network
+import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPackets
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPacketsClient
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
@@ -44,7 +45,9 @@ fun init() {
     ContainerProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_processing")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network.fromTag(tag!!, playerEntity.world);
+        val state = NetworkState.fromTag(playerEntity.world, tag!!)
+        val uuid = packetByteBuf.readUuid()
+        val network = state.getNetworkByUUID(uuid)
         BlueprintTerminalScreenHandler.Processing(
             syncId,
             playerEntity.inventory,
@@ -57,7 +60,9 @@ fun init() {
     ContainerProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_crafting")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network.fromTag(tag!!, playerEntity.world);
+        val state = NetworkState.fromTag(playerEntity.world, tag!!)
+        val uuid = packetByteBuf.readUuid()
+        val network = state.getNetworkByUUID(uuid)
         BlueprintTerminalScreenHandler.Crafting(
             syncId,
             playerEntity.inventory,
@@ -98,7 +103,9 @@ fun initClient() {
     ScreenProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_processing")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network.fromTag(tag!!, playerEntity.world);
+        val state = NetworkState.fromTag(playerEntity.world, tag!!)
+        val uuid = packetByteBuf.readUuid()
+        val network = state.getNetworkByUUID(uuid)
         BlueprintTerminalScreen.Processing(
             BlueprintTerminalScreenHandler.Processing(
                 syncId,
@@ -115,7 +122,9 @@ fun initClient() {
     ScreenProviderRegistry.INSTANCE.registerFactory(Identifier(MOD_ID, "blueprint_terminal_crafting")) { syncId: Int, _, playerEntity: PlayerEntity, packetByteBuf: PacketByteBuf ->
         val pos = packetByteBuf.readBlockPos()
         val tag = packetByteBuf.readCompoundTag()
-        val network = Network.fromTag(tag!!, playerEntity.world);
+        val state = NetworkState.fromTag(playerEntity.world, tag!!)
+        val uuid = packetByteBuf.readUuid()
+        val network = state.getNetworkByUUID(uuid)
         BlueprintTerminalScreen.Crafting(
             BlueprintTerminalScreenHandler.Crafting(
                 syncId,

@@ -1,0 +1,49 @@
+{
+	"elements": [
+		{
+			"from": [1, 1, 0],
+			"to": [15, 15, 16],
+			"rotation": {"angle": 0, "axis": "y", "origin": [9, 8, 8]},
+			"faces": {
+				"east": {"uv": [0, 1, 16, 15], "texture": "#all", "jmx_tex0": "#jmx_tex_all0", "jmx_material": "#jmx_mat_all"},
+				"west": {"uv": [0, 1, 16, 15], "rotation": 180, "texture": "#all", "jmx_tex0": "#jmx_tex_all0", "jmx_material": "#jmx_mat_all"},
+				"up": {"uv": [0, 1, 16, 15], "rotation": 270, "texture": "#all", "jmx_tex0": "#jmx_tex_all0", "jmx_material": "#jmx_mat_all"},
+				"down": {"uv": [0, 1, 16, 15], "rotation": 90, "texture": "#all", "jmx_tex0": "#jmx_tex_all0", "jmx_material": "#jmx_mat_all"}
+			}
+		},
+        {
+            "from": [1, 1, 0],
+            "to": [15, 15, 16],
+            "rotation": {"angle": 0, "axis": "y", "origin": [9, 8, 8]},
+            "faces": {
+              "east": {"uv": [0, 1, 16, 15], "texture": "#all1", "tintindex": 0, "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1"},
+              "west": {"uv": [0, 1, 16, 15], "rotation": 180, "texture": "#all1", "tintindex": 0, "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1"},
+              "up": {"uv": [0, 1, 16, 15], "rotation": 270, "texture": "#all1", "tintindex": 0, "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1"},
+              "down": {"uv": [0, 1, 16, 15], "rotation": 90, "texture": "#all1", "tintindex": 0, "jmx_tex1": "#jmx_tex_all1", "jmx_material": "#jmx_mat_all1"}
+            }
+        }
+	],
+    "textures": {
+      "all": "opticalnetworks:block/controller_pillar",
+      "all1": "opticalnetworks:block/controller_pillar_emissive",
+      "particle": "opticalnetworks:block/controller_pillar"
+    },
+    "jmx": {
+      "textures": {
+        "particle": "opticalnetworks:block/controller_pillar",
+        "jmx_tex_all0": "opticalnetworks:block/controller_pillar",
+        "jmx_tex_all1": "opticalnetworks:block/controller_pillar_emissive"
+      },
+      "materials": {
+        "jmx_mat_all": {
+          "layer0": "cutout_mipped"
+        },
+        "jmx_mat_all1": {
+          "layer1": "translucent",
+          "emissive1": true,
+          "ambient_occlusion1": false,
+          "diffuse1": false
+        }
+      }
+    }
+}

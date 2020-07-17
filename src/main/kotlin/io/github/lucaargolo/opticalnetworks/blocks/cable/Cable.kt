@@ -1,5 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.blocks.cable
 
+import io.github.lucaargolo.opticalnetworks.network.blocks.CableConnectable
 import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.*
@@ -37,23 +38,22 @@ open class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS)) {
 
     override fun getPlacementState(ctx: ItemPlacementContext): BlockState {
         return defaultState
-            .with(ConnectingBlock.NORTH, ctx.world.getBlockState(ctx.blockPos.north()).block is NetworkConnectable)
-            .with(ConnectingBlock.SOUTH, ctx.world.getBlockState(ctx.blockPos.south()).block is NetworkConnectable)
-            .with(ConnectingBlock.EAST, ctx.world.getBlockState(ctx.blockPos.east()).block is NetworkConnectable)
-            .with(ConnectingBlock.WEST, ctx.world.getBlockState(ctx.blockPos.west()).block is NetworkConnectable)
-            .with(ConnectingBlock.UP, ctx.world.getBlockState(ctx.blockPos.up()).block is NetworkConnectable)
-            .with(ConnectingBlock.DOWN, ctx.world.getBlockState(ctx.blockPos.down()).block is NetworkConnectable)
+            .with(ConnectingBlock.NORTH, ctx.world.getBlockState(ctx.blockPos.north()).block is CableConnectable)
+            .with(ConnectingBlock.SOUTH, ctx.world.getBlockState(ctx.blockPos.south()).block is CableConnectable)
+            .with(ConnectingBlock.EAST, ctx.world.getBlockState(ctx.blockPos.east()).block is CableConnectable)
+            .with(ConnectingBlock.WEST, ctx.world.getBlockState(ctx.blockPos.west()).block is CableConnectable)
+            .with(ConnectingBlock.UP, ctx.world.getBlockState(ctx.blockPos.up()).block is CableConnectable)
+            .with(ConnectingBlock.DOWN, ctx.world.getBlockState(ctx.blockPos.down()).block is CableConnectable)
     }
 
     override fun getStateForNeighborUpdate(state: BlockState, facing: Direction, neighborState: BlockState, world: WorldAccess, pos: BlockPos, neighborPos: BlockPos): BlockState {
         return state
-            .with(ConnectingBlock.NORTH, world.getBlockState(pos.north()).block is NetworkConnectable)
-            .with(ConnectingBlock.SOUTH, world.getBlockState(pos.south()).block is NetworkConnectable)
-            .with(ConnectingBlock.EAST, world.getBlockState(pos.east()).block is NetworkConnectable)
-            .with(ConnectingBlock.WEST, world.getBlockState(pos.west()).block is NetworkConnectable)
-            .with(ConnectingBlock.UP, world.getBlockState(pos.up()).block is NetworkConnectable)
-            .with(ConnectingBlock.DOWN, world.getBlockState(pos.down()).block is NetworkConnectable)
-
+            .with(ConnectingBlock.NORTH, world.getBlockState(pos.north()).block is CableConnectable)
+            .with(ConnectingBlock.SOUTH, world.getBlockState(pos.south()).block is CableConnectable)
+            .with(ConnectingBlock.EAST, world.getBlockState(pos.east()).block is CableConnectable)
+            .with(ConnectingBlock.WEST, world.getBlockState(pos.west()).block is CableConnectable)
+            .with(ConnectingBlock.UP, world.getBlockState(pos.up()).block is CableConnectable)
+            .with(ConnectingBlock.DOWN, world.getBlockState(pos.down()).block is CableConnectable)
     }
 
     override fun getCollisionShape(state: BlockState, world: BlockView, pos: BlockPos, context: ShapeContext): VoxelShape {

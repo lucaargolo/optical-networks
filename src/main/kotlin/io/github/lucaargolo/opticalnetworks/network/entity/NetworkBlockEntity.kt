@@ -31,8 +31,7 @@ open class NetworkBlockEntity(val block: Block): BlockEntity(getEntityType(block
 
     override fun tick() {
         if(world?.isClient == false) {
-            val networkState =
-                getNetworkState(world as ServerWorld)
+            val networkState = getNetworkState(world as ServerWorld)
             currentNetwork = networkState.getNetwork(world as ServerWorld, pos)
             if(currentNetwork == null) {
                 networkState.updateBlock(world as ServerWorld, pos)

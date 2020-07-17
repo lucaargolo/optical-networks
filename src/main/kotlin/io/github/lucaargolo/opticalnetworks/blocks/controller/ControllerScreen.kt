@@ -152,15 +152,15 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
     }
 
     private fun drawEnergyTooltip(matrices: MatrixStack?, mouseX: Int, mouseY: Int) {
-        val be = handler.network.getController()?.let {
-            playerInventory.player.world.getBlockEntity(it)
-        }
-        if(be is ControllerBlockEntity) {
-            val texts = mutableListOf<Text>()
-            texts.add(LiteralText("${Formatting.GOLD}Energy:"))
-            texts.add(LiteralText("${be.storedPower} / ${be.maxStoredPower}"))
-            renderTooltip(matrices, texts, mouseX, mouseY)
-        }
+//        val be = handler.network.getController()?.let {
+//            playerInventory.player.world.getBlockEntity(it)
+//        }
+//        if(be is ControllerBlockEntity) {
+//            val texts = mutableListOf<Text>()
+//            texts.add(LiteralText("${Formatting.GOLD}Energy:"))
+//            texts.add(LiteralText("${be.storedPower} / ${be.maxStoredPower}"))
+//            renderTooltip(matrices, texts, mouseX, mouseY)
+//        }
     }
 
     override fun drawBackground(matrices: MatrixStack?, delta: Float, mouseX: Int, mouseY: Int) {
@@ -168,16 +168,16 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         client!!.textureManager.bindTexture(texture)
         drawTexture(matrices, x, y, 0, 0, bWidth, bHeight)
         client!!.textureManager.bindTexture(generic)
-        val be = handler.network.getController()?.let {
-            playerInventory.player.world.getBlockEntity(it)
-        }
-        if(be is ControllerBlockEntity) {
-            val energy = MathHelper.ceil((be.storedPower/be.maxStoredPower)*65)
-            drawTexture(matrices, x+10, y+18+(65-energy), 65, (65-energy), 12, energy)
-        }
-        val pair = handler.network.getSpace()
-        val space = MathHelper.ceil((pair.first.toFloat()/pair.second.toFloat())*65)
-        drawTexture(matrices, x+28, y+18+(65-space), 78, (65-space), 12, space)
+//        val be = handler.network.getController()?.let {
+//            playerInventory.player.world.getBlockEntity(it)
+//        }
+//        if(be is ControllerBlockEntity) {
+//            val energy = MathHelper.ceil((be.storedPower/be.maxStoredPower)*65)
+//            drawTexture(matrices, x+10, y+18+(65-energy), 65, (65-energy), 12, energy)
+//        }
+//        val pair = handler.network.getSpace()
+//        val space = MathHelper.ceil((pair.first.toFloat()/pair.second.toFloat())*65)
+//        drawTexture(matrices, x+28, y+18+(65-space), 78, (65-space), 12, space)
     }
 
     override fun drawForeground(matrices: MatrixStack?, mouseX: Int, mouseY: Int) {
