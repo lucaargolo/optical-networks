@@ -16,6 +16,9 @@ import net.minecraft.world.WorldAccess
 
 open class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS)) {
 
+    override val bandwidthUsage = 0.0
+    override val energyUsage = 0.0
+
     init {
         defaultState = stateManager.defaultState
             .with(Properties.NORTH, false)

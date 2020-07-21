@@ -43,8 +43,6 @@ class NetworkState(val world: World): PersistentState(MOD_ID) {
                 getNetwork(world, pos.down())?.let { adjacentNetworks.add(it) }
             }
             var added: Network? = null
-            val controllerNetworks = linkedSetOf<Network>()
-            val componentNetworks = linkedSetOf<Network>()
             val adjacentNetworksIterator = adjacentNetworks.iterator()
             while(adjacentNetworksIterator.hasNext()){
                 val it = adjacentNetworksIterator.next()
@@ -55,33 +53,15 @@ class NetworkState(val world: World): PersistentState(MOD_ID) {
                     }else if (it.type == Network.Type.COMPONENTS && block is NetworkConnectable) {
                         it.addComponent(pos, block)
                         added = it
-                    }else{
-                        if(it.type == Network.Type.CONTROLLER) controllerNetworks.add(it)
-                        if(it.type == Network.Type.COMPONENTS) componentNetworks.add(it)
                     }
                 }else {
                     if (it.type == added.type) {
                         adjacentNetworksIterator.remove()
                         removeNetwork(it)
-                    } else {
-                        if (it.type == Network.Type.CONTROLLER) controllerNetworks.add(it)
-                        if (it.type == Network.Type.COMPONENTS) componentNetworks.add(it)
                     }
                 }
             }
             if(added == null) added = createNetwork(world, pos)
-            if(added.type == Network.Type.COMPONENTS) {
-                controllerNetworks.forEach {
-                    added.controllerNetworks.add(it.id)
-                    it.componentNetworks.add(added.id)
-                }
-            }
-            if(added.type == Network.Type.CONTROLLER) {
-                componentNetworks.forEach {
-                    added.componentNetworks.add(it.id)
-                    it.controllerNetworks.add(added.id)
-                }
-            }
         }else if(block !is CableConnectable && getNetwork(world, pos) != null) {
             val network = getNetwork(world, pos)!!
             network.removeComponent(pos)

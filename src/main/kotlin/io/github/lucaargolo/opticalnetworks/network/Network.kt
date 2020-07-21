@@ -1,5 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.network
 
+import io.github.lucaargolo.opticalnetworks.blocks.CONTROLLER
 import io.github.lucaargolo.opticalnetworks.blocks.`interface`.Interface
 import io.github.lucaargolo.opticalnetworks.blocks.`interface`.InterfaceBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.assembler.Assembler
@@ -41,13 +42,97 @@ class Network private constructor(val state: NetworkState, var world: World, val
     var id: UUID = UUID.randomUUID()
     var components = linkedSetOf<BlockPos>()
     var componentsMap = linkedMapOf<BlockPos, Block>()
-    var processingActions = linkedMapOf<CraftingAction, BlockPos>()
-    var processingMachines = linkedSetOf<BlockPos>()
-    var processingItems = linkedMapOf<MutableList<ItemStack>, BlockPos>()
 
     var controllerNetworks: LinkedHashSet<UUID> = linkedSetOf()
     var componentNetworks: LinkedHashSet<UUID> = linkedSetOf()
 
+    private var processingActions = linkedMapOf<CraftingAction, BlockPos>()
+    
+    fun getProcessingActions(): LinkedHashMap<CraftingAction, BlockPos> {
+        return if(type == Type.COMPONENTS) {
+            getControllerNetwork()?.getProcessingActions() ?: linkedMapOf()
+        }else{
+            val finalHashMap = linkedMapOf<CraftingAction, BlockPos>()
+            componentNetworks.forEach { id ->
+                state.networks[id]?.processingActions?.let { finalHashMap.putAll(it) }
+            }
+            finalHashMap
+        }
+    }
+
+    fun addProcessingAction(action: CraftingAction, pos: BlockPos) {
+        processingActions[action] = pos
+    }
+
+    fun removeProcessingAction(action: CraftingAction) {
+        getProcessingMachines().forEach { (pos, act) ->
+            if(act == action) removeProcessingMachine(pos)
+        }
+        if(processingActions.remove(action) == null && getControllerNetwork()?.processingActions?.remove(action) == null) {
+            getControllerNetwork()?.componentNetworks?.forEach {
+                if(state.networks[it]?.processingActions?.remove(action) != null)
+                    return@forEach
+            }
+        }
+    }
+    
+    private var processingMachines = linkedMapOf<BlockPos, CraftingAction>()
+
+    fun getProcessingMachines(): LinkedHashMap<BlockPos, CraftingAction> {
+        return if(type == Type.COMPONENTS) {
+            getControllerNetwork()?.getProcessingMachines() ?: linkedMapOf()
+        }else{
+            val finalHashMap = linkedMapOf<BlockPos, CraftingAction>()
+            componentNetworks.forEach { id ->
+                state.networks[id]?.processingMachines?.let { finalHashMap.putAll(it) }
+            }
+            finalHashMap
+        }
+    }
+    
+    fun addProcessingMachine(pos: BlockPos, action: CraftingAction) {
+        processingMachines[pos] = action
+    }
+    
+    fun removeProcessingMachine(pos: BlockPos) {
+        getProcessingItems().forEach { (list, processingPos) ->
+            if(processingPos == pos) removeProcessingItem(list)
+        }
+        if(processingMachines.remove(pos) == null && getControllerNetwork()?.processingMachines?.remove(pos) == null) {
+            getControllerNetwork()?.componentNetworks?.forEach {
+                if(state.networks[it]?.processingMachines?.remove(pos) != null)
+                    return@forEach
+            }
+        }
+    }
+    
+    private var processingItems = linkedMapOf<MutableList<ItemStack>, BlockPos>()
+
+    fun getProcessingItems(): LinkedHashMap<MutableList<ItemStack>, BlockPos> {
+        return if(type == Type.COMPONENTS) {
+            getControllerNetwork()?.getProcessingItems() ?: linkedMapOf()
+        }else{
+            val finalHashMap = linkedMapOf<MutableList<ItemStack>, BlockPos>()
+            componentNetworks.forEach { id ->
+                state.networks[id]?.processingItems?.let { finalHashMap.putAll(it) }
+            }
+            finalHashMap
+        }
+    }
+
+    fun addProcessingItem(list: MutableList<ItemStack>, pos: BlockPos) {
+        processingItems[list] = pos
+    }
+
+    fun removeProcessingItem(list: MutableList<ItemStack>){
+        if(processingItems.remove(list) == null && getControllerNetwork()?.processingItems?.remove(list) == null) {
+            getControllerNetwork()?.componentNetworks?.forEach {
+                if(state.networks[it]?.processingItems?.remove(list) != null)
+                    return@forEach
+            }
+        }
+    }
+    
     var mainController: BlockPos = BlockPos.ORIGIN
     private fun getControllerNetwork(): Network? {
         val iterator = controllerNetworks.iterator()
@@ -62,8 +147,30 @@ class Network private constructor(val state: NetworkState, var world: World, val
         }
     }
 
+    fun getStoredPower(): Double {
+        return if(type == Type.COMPONENTS) {
+            getControllerNetwork()?.getStoredPower() ?: 0.0
+        }else{
+            (world.getBlockEntity(mainController) as? ControllerBlockEntity)?.storedPower ?: 0.0
+        }
+    }
+
+    fun getMaxStoredPower(): Double {
+        if(type == Type.COMPONENTS) {
+            return getControllerNetwork()?.getMaxStoredPower() ?: 0.0
+        }else{
+            var maxStoredPower = 100000.0
+            componentsMap.forEach { (pos, block) ->
+                if(block == CONTROLLER && pos != mainController) {
+                    maxStoredPower += (world.getBlockEntity(pos) as? ControllerBlockEntity)?.maxStoredPower ?: 0.0
+                }
+            }
+            return maxStoredPower
+        }
+    }
+
     fun isValid(): Boolean {
-        return (type == Type.COMPONENTS && controllerNetworks.size == 1 && getControllerNetwork()!!.isValid()) || (type == Type.CONTROLLER && world.getBlockEntity(mainController) is ControllerBlockEntity)
+        return (type == Type.COMPONENTS && controllerNetworks.size == 1 && getControllerNetwork()?.isValid() == true) || (type == Type.CONTROLLER && world.getBlockEntity(mainController) is ControllerBlockEntity)
     }
 
     fun addComponent(blockPos: BlockPos, block: Block) {
@@ -489,6 +596,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
 
     fun toTag(tag: CompoundTag): CompoundTag {
         tag.putInt("type", Type.values().indexOf(type))
+        tag.putLong("mainController", mainController.asLong())
         tag.putUuid("id", id)
         val controllerNetworksTag = ListTag()
         controllerNetworks.forEach {
@@ -522,6 +630,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
             val type = Type.values()[tag.getInt("type")]
             val network = Network(state, world, type)
             network.id = tag.getUuid("id")
+            network.mainController = BlockPos.fromLong(tag.getLong("mainController"))
             val controllerNetworksTag = tag.get("controllerNetworks") as ListTag
             controllerNetworksTag.forEach {
                 network.controllerNetworks.add(UUID.fromString((it as StringTag).asString()))

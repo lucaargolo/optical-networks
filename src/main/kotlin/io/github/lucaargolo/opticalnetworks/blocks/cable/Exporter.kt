@@ -19,6 +19,9 @@ import net.minecraft.world.World
 
 open class Exporter: CableWithEntity() {
 
+    override val bandwidthUsage = 50.0
+    override val energyUsage = 32.0
+
     override fun createBlockEntity(world: BlockView?): BlockEntity? {
         return ExporterBlockEntity(this)
     }

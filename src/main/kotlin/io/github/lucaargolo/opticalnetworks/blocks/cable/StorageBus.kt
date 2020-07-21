@@ -10,6 +10,9 @@ import net.minecraft.world.BlockView
 
 class StorageBus: CableWithEntity() {
 
+    override val bandwidthUsage = 10.0
+    override val energyUsage = 16.0
+
     override fun getSpacificShape(state: BlockState): VoxelShape {
         val facing = state[Properties.FACING]
         return VoxelShapes.union(when(facing) {

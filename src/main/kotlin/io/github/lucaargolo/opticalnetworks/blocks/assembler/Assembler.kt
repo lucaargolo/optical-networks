@@ -11,12 +11,16 @@ import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
+import net.minecraft.util.ItemScatterer
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
 class Assembler: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL).nonOpaque()) {
+
+    override val bandwidthUsage = 50.0
+    override val energyUsage = 32.0
 
     override fun createBlockEntity(world: BlockView?): BlockEntity? {
         return AssemblerBlockEntity(this)
@@ -31,5 +35,14 @@ class Assembler: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.ME
         return ActionResult.SUCCESS
     }
 
+
+    override fun onStateReplaced(state: BlockState, world: World, pos: BlockPos, newState: BlockState, notify: Boolean) {
+        if (!state.isOf(newState.block)) {
+            (world.getBlockEntity(pos) as? AssemblerBlockEntity)?.let {
+                ItemScatterer.spawn(world, pos, it)
+            }
+            super.onStateReplaced(state, world, pos, newState, notify)
+        }
+    }
 
 }

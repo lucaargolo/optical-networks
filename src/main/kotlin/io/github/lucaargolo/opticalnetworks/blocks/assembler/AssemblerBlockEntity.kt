@@ -184,7 +184,7 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
                         if (stk.isEmpty) inventory[10] = tagRecipe.output.copy()
                         else if (areStacksCompatible(stk, tagRecipe.output) && stk.count+tagRecipe.output.count <= stk.maxCount) inventory[10].increment(tagRecipe.output.count)
                         inventory[10] = currentNetwork!!.insertStack(inventory[10])
-                        currentNetwork!!.processingMachines.remove(pos)
+                        currentNetwork!!.removeProcessingMachine(pos)
                         processingTime = 0
                     }else processingTime++
                 }else processingTime = 0

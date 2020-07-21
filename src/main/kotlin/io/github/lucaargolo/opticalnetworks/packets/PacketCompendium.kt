@@ -3,8 +3,8 @@ package io.github.lucaargolo.opticalnetworks.packets
 import com.google.common.collect.Lists
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.BLUEPRINT_TERMINAL
-import io.github.lucaargolo.opticalnetworks.blocks.assembler.Assembler
 import io.github.lucaargolo.opticalnetworks.blocks.controller.ControllerBlockEntity
+import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.*
 import io.github.lucaargolo.opticalnetworks.mixed.ServerPlayerEntityMixed
@@ -16,7 +16,6 @@ import io.github.lucaargolo.opticalnetworks.utils.autocrafting.RequestCraftScree
 import io.github.lucaargolo.opticalnetworks.utils.getNetworkState
 import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
 import io.netty.buffer.Unpooled
-import kotlinx.coroutines.newFixedThreadPoolContext
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
@@ -24,7 +23,6 @@ import net.fabricmc.fabric.api.network.PacketContext
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.network.ClientPlayerEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.Item
@@ -37,10 +35,12 @@ import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.server.world.ServerWorld
 import net.minecraft.text.LiteralText
 import net.minecraft.util.Identifier
-import net.minecraft.util.math.MathHelper
 import java.awt.Color
 import java.util.*
 
+val INCREASE_ACTION_PRIORITY_C2S_PACKET = Identifier(MOD_ID, "increase_action_priority")
+val DECREASE_ACTION_PRIORITY_C2S_PACKET = Identifier(MOD_ID, "decrease_action_priority")
+val REMOVE_ACTION_C2S_PACKET = Identifier(MOD_ID, "remove_action")
 val NETWORK_INTERACT_C2S_PACKET = Identifier(MOD_ID, "network_interact")
 val REQUEST_CRAFTING_C2S_PACKET = Identifier(MOD_ID, "request_crafting")
 val CONFIRM_CRAFTING_C2S_PACKET = Identifier(MOD_ID, "confirm_crafting")
@@ -48,19 +48,69 @@ val GHOST_SLOT_CLICK_C2S_PACKET = Identifier(MOD_ID, "ghost_slot_click")
 val UPDATE_CABLE_BUTTONS_C2S_PACKET = Identifier(MOD_ID, "update_cable_buttons")
 val UPDATE_TERMINAL_BUTTONS_C2S_PACKET = Identifier(MOD_ID, "update_terminal_buttons")
 val UPDATE_TERMINAL_CONFIG_C2S_PACKET = Identifier(MOD_ID, "update_terminal_config_c2s")
-val CLEAR_TERMINAL_TABLE = Identifier(MOD_ID, "clear_terminal_table")
-val CHANGE_BLUEPRINT_MODE = Identifier(MOD_ID, "change_blueprint_mode")
-val CHANGE_BLUEPRINT_ITEM_TAG_MODE = Identifier(MOD_ID, "change_blueprint_item_tag_mode")
-val CHANGE_BLUEPRINT_NBT_TAG_MODE = Identifier(MOD_ID, "change_blueprint_nbt_tag_mode")
-val MOVE_TERMINAL_ITEMS_PACKET = Identifier(MOD_ID, "move_terminal_items")
-val MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET = Identifier(MOD_ID, "move_blueprint_terminal_items")
+val CLEAR_TERMINAL_TABLE_C2S_PACKET = Identifier(MOD_ID, "clear_terminal_table")
+val CHANGE_BLUEPRINT_MODE_C2S_PACKET = Identifier(MOD_ID, "change_blueprint_mode")
+val CHANGE_BLUEPRINT_ITEM_TAG_MODE_C2S_PACKET = Identifier(MOD_ID, "change_blueprint_item_tag_mode")
+val CHANGE_BLUEPRINT_NBT_TAG_MODE_C2S_PACKET = Identifier(MOD_ID, "change_blueprint_nbt_tag_mode")
+val MOVE_TERMINAL_ITEMS_PACKET_C2S_PACKET = Identifier(MOD_ID, "move_terminal_items")
+val MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET_C2S_PACKET = Identifier(MOD_ID, "move_blueprint_terminal_items")
 
 val craftingActionCache = linkedMapOf<UUID, CraftingAction>()
 
 fun initNetworkPackets() {
 
+    ServerSidePacketRegistry.INSTANCE.register(REMOVE_ACTION_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+        val id = attachedData.readInt()
+        val pos = attachedData.readBlockPos()
+        packetContext.taskQueue.execute {
+            (packetContext.player.world.getBlockEntity(pos) as? CraftingComputerBlockEntity)?.let { be ->
+                be.removeCrafting(id)
+            }
+        }
+    }
+
+    ServerSidePacketRegistry.INSTANCE.register(DECREASE_ACTION_PRIORITY_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+        val id = attachedData.readInt()
+        val pos = attachedData.readBlockPos()
+        packetContext.taskQueue.execute {
+            (packetContext.player.world.getBlockEntity(pos) as? CraftingComputerBlockEntity)?.let { be ->
+                val parentOnlyQueue = be.cacheSortedQueue().filter { !it.key.isChild }
+                if(parentOnlyQueue.size > id && id < parentOnlyQueue.size-1) {
+                    val parentId = be.cacheSortedQueue().indexOf(parentOnlyQueue[id])
+                    val index = 1
+                    while(be.cacheSortedQueue()[parentId+index].key.isChild) {
+                        be.cacheSortedQueue()[parentId+index].setValue(be.cacheSortedQueue()[parentId+index].value - parentOnlyQueue[id+1].value)
+                    }
+                    parentOnlyQueue[id].setValue(parentOnlyQueue[id].value - parentOnlyQueue[id+1].value)
+                    be.markDirty()
+                    be.sync()
+                }
+            }
+        }
+    }
+
+    ServerSidePacketRegistry.INSTANCE.register(INCREASE_ACTION_PRIORITY_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+        val id = attachedData.readInt()
+        val pos = attachedData.readBlockPos()
+        packetContext.taskQueue.execute {
+            (packetContext.player.world.getBlockEntity(pos) as? CraftingComputerBlockEntity)?.let { be ->
+                val parentOnlyQueue = be.cacheSortedQueue().filter { !it.key.isChild }
+                if(parentOnlyQueue.size > id && id > 0) {
+                    val parentId = be.cacheSortedQueue().indexOf(parentOnlyQueue[id])
+                    val index = 1
+                    while(be.cacheSortedQueue()[parentId+index].key.isChild) {
+                        be.cacheSortedQueue()[parentId+index].setValue(be.cacheSortedQueue()[parentId+index].value + parentOnlyQueue[id+1].value)
+                    }
+                    parentOnlyQueue[id].setValue(parentOnlyQueue[id].value + parentOnlyQueue[id-1].value)
+                    be.markDirty()
+                    be.sync()
+                }
+            }
+        }
+    }
+
     ServerSidePacketRegistry.INSTANCE.register(UPDATE_TERMINAL_CONFIG_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
-        packetContext.run {
+        packetContext.taskQueue.execute {
             attachedData.readCompoundTag()?.let {  (packetContext.player as ServerPlayerEntityMixed).`opticalNetworks$terminalConfig`.fromTag(it) }
         }
     }
@@ -72,8 +122,8 @@ fun initNetworkPackets() {
         val network = networkState.getNetworkByUUID(networkId)
         val craftStack = attachedData.readItemStack()
         val quantity = attachedData.readInt()
-        if(network != null) packetContext.taskQueue.execute {
-            val craftAction = CraftingAction.create(network, network.getAvailableStacks(""), network.getAvailableCraftables(""), world, craftStack, quantity)
+        packetContext.taskQueue.execute {
+            val craftAction = CraftingAction.create(network, network.getAvailableStacks(""), network.getAvailableCraftables(""), world, craftStack, quantity, false)
             craftingActionCache[packetContext.player.uuid] = craftAction
             val passedData = PacketByteBuf(Unpooled.buffer())
             passedData.writeCompoundTag(craftAction.toTag(CompoundTag()))
@@ -99,26 +149,21 @@ fun initNetworkPackets() {
         val networkId = attachedData.readUuid()
         val networkState = getNetworkState(player.world as ServerWorld)
         val network = networkState.getNetworkByUUID(networkId)
-        if(network != null) {
-
-            val type = attachedData.readInt()
-
-            when(type) {
-                1 -> {
-                    //mouseClicked in TerminalScreen
-                    val button = attachedData.readInt()
-                    val shift = attachedData.readBoolean()
-                    val stack = attachedData.readItemStack()
-                    packetContext.taskQueue.execute {
-                        executeMouseClicker(stack, playerInventory, shift, network, button)
-                    }
+        when(attachedData.readInt()) {
+            1 -> {
+                //mouseClicked in TerminalScreen
+                val button = attachedData.readInt()
+                val shift = attachedData.readBoolean()
+                val stack = attachedData.readItemStack()
+                packetContext.taskQueue.execute {
+                    executeMouseClicker(stack, playerInventory, shift, network, button)
                 }
-                2 -> {
-                    //change controller color
-                    val color = attachedData.readString()
-                    packetContext.taskQueue.execute {
-                        changeColor(color, player, network)
-                    }
+            }
+            2 -> {
+                //change controller color
+                val color = attachedData.readString()
+                packetContext.taskQueue.execute {
+                    changeColor(color, player, network)
                 }
             }
         }
@@ -199,7 +244,7 @@ fun initNetworkPackets() {
         }
     }
 
-    ServerSidePacketRegistry.INSTANCE.register(CLEAR_TERMINAL_TABLE) { packetContext: PacketContext, _ ->
+    ServerSidePacketRegistry.INSTANCE.register(CLEAR_TERMINAL_TABLE_C2S_PACKET) { packetContext: PacketContext, _ ->
         val screenHandler = packetContext.player.currentScreenHandler
         if(screenHandler is CraftingTerminalScreenHandler) {
             packetContext.taskQueue.execute {
@@ -215,7 +260,7 @@ fun initNetworkPackets() {
         }
     }
 
-    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_MODE) { packetContext: PacketContext, _ ->
+    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_MODE_C2S_PACKET) { packetContext: PacketContext, _ ->
         val screenHandler = packetContext.player.currentScreenHandler
 
         val identifier = getBlockId(BLUEPRINT_TERMINAL)!!
@@ -249,7 +294,7 @@ fun initNetworkPackets() {
         }
     }
 
-    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_ITEM_TAG_MODE) { packetContext: PacketContext, _ ->
+    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_ITEM_TAG_MODE_C2S_PACKET) { packetContext: PacketContext, _ ->
         val screenHandler = packetContext.player.currentScreenHandler
         packetContext.taskQueue.run {
             if(screenHandler is BlueprintTerminalScreenHandler) {
@@ -262,7 +307,7 @@ fun initNetworkPackets() {
         }
     }
 
-    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_NBT_TAG_MODE) { packetContext: PacketContext, _ ->
+    ServerSidePacketRegistry.INSTANCE.register(CHANGE_BLUEPRINT_NBT_TAG_MODE_C2S_PACKET) { packetContext: PacketContext, _ ->
         val screenHandler = packetContext.player.currentScreenHandler
         packetContext.taskQueue.run {
             if(screenHandler is BlueprintTerminalScreenHandler) {
@@ -277,7 +322,7 @@ fun initNetworkPackets() {
 
     if(!FabricLoader.getInstance().isModLoaded("roughlyenoughitems")) return
 
-    ServerSidePacketRegistry.INSTANCE.register(MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET) { packetContext: PacketContext, packetByteBuf: PacketByteBuf ->
+    ServerSidePacketRegistry.INSTANCE.register(MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET_C2S_PACKET) { packetContext: PacketContext, packetByteBuf: PacketByteBuf ->
         val category = packetByteBuf.readIdentifier()
         val player = packetContext.player as ServerPlayerEntity
         val container = player.currentScreenHandler as BlueprintTerminalScreenHandler
@@ -313,7 +358,7 @@ fun initNetworkPackets() {
         }
     }
 
-    ServerSidePacketRegistry.INSTANCE.register(MOVE_TERMINAL_ITEMS_PACKET) { packetContext: PacketContext, packetByteBuf: PacketByteBuf ->
+    ServerSidePacketRegistry.INSTANCE.register(MOVE_TERMINAL_ITEMS_PACKET_C2S_PACKET) { packetContext: PacketContext, packetByteBuf: PacketByteBuf ->
         val category = packetByteBuf.readIdentifier()
         val player = packetContext.player as ServerPlayerEntity
         val container = player.currentScreenHandler as CraftingTerminalScreenHandler
@@ -454,8 +499,8 @@ var terminalConfig = TerminalConfig()
 
 fun initNetworkPacketsClient() {
     ClientSidePacketRegistry.INSTANCE.register(OPEN_CONFIRM_CRAFT_S2C_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
-        val tag = attachedData.readCompoundTag()
-        val action = CraftingAction.fromTag(tag!!, packetContext.player.world)
+        val actionTag = attachedData.readCompoundTag()!!
+        val action = CraftingAction.fromTag(actionTag, packetContext.player.world)
         packetContext.taskQueue.execute {
             if(MinecraftClient.getInstance().currentScreen is RequestCraftScreen) {
                 val terminalScreen = (MinecraftClient.getInstance().currentScreen as RequestCraftScreen).terminal

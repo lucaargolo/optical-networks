@@ -26,13 +26,21 @@ class ControllerBlockEntity(block: Block): NetworkBlockEntity(block), EnergyStor
     var storedPower = 0.0
 
     override fun setStored(p0: Double) {
-        storedPower = p0
-        markDirty()
+        if(currentNetwork?.mainController != pos) {
+            val be = currentNetwork?.mainController?.let{ pos -> (world!!.getBlockEntity(pos) as? ControllerBlockEntity) }
+            be?.let {
+                it.setStored(it.storedPower+(p0-storedPower))
+            }
+        }else{
+            storedPower = p0
+            markDirty()
+            sync()
+        }
     }
 
-    override fun getMaxStoredPower() = 100000.0
+    override fun getMaxStoredPower() = if(currentNetwork?.mainController == pos) currentNetwork?.getMaxStoredPower() ?: 100000.0 else 100000.0
 
-    override fun getTier() = EnergyTier.LOW
+    override fun getTier() = EnergyTier.INFINITE
 
     override fun getStored(p0: EnergySide) = storedPower
 

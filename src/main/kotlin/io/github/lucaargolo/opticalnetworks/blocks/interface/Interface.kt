@@ -24,6 +24,9 @@ import net.minecraft.world.World
 
 class Interface: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL)) {
 
+    override val bandwidthUsage = 100.0
+    override val energyUsage = 64.0
+
     companion object {
         val DIRECTIONAL: BooleanProperty = BooleanProperty.of("directional")
     }

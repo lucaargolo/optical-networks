@@ -11,6 +11,7 @@ import net.minecraft.util.Identifier
 class SmallButtonWidget(x: Int, y: Int, private val u: Int, private val v: Int, pressAction: PressAction, val texture: Identifier): ButtonWidget(x, y, 8, 8, LiteralText(""), pressAction ), PressableWidget {
 
     override var isPressed = false
+    var data = 0
 
     override fun renderButton(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
         if(!active) return

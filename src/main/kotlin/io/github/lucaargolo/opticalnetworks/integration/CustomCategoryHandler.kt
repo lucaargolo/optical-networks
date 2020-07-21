@@ -5,8 +5,8 @@ import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScr
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.CraftingTerminalScreen
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.CraftingTerminalScreenHandler
 import io.github.lucaargolo.opticalnetworks.network.Network
-import io.github.lucaargolo.opticalnetworks.packets.MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET
-import io.github.lucaargolo.opticalnetworks.packets.MOVE_TERMINAL_ITEMS_PACKET
+import io.github.lucaargolo.opticalnetworks.packets.MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET_C2S_PACKET
+import io.github.lucaargolo.opticalnetworks.packets.MOVE_TERMINAL_ITEMS_PACKET_C2S_PACKET
 import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.ints.IntList
@@ -74,7 +74,7 @@ class CustomCategoryHandler: DefaultCategoryHandler() {
             }
 
             if(missingInInvList.isEmpty()) ClientSidePacketRegistry.INSTANCE.sendToServer(RoughlyEnoughItemsNetwork.MOVE_ITEMS_PACKET, buf)
-            else ClientSidePacketRegistry.INSTANCE.sendToServer(MOVE_TERMINAL_ITEMS_PACKET, buf)
+            else ClientSidePacketRegistry.INSTANCE.sendToServer(MOVE_TERMINAL_ITEMS_PACKET_C2S_PACKET, buf)
 
             return AutoTransferHandler.Result.createSuccessful()
 
@@ -116,7 +116,7 @@ class CustomCategoryHandler: DefaultCategoryHandler() {
                 if (stack.itemStack != null) buf.writeItemStack(stack.itemStack) else buf.writeItemStack(ItemStack.EMPTY)
             }
 
-            ClientSidePacketRegistry.INSTANCE.sendToServer(MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET, buf)
+            ClientSidePacketRegistry.INSTANCE.sendToServer(MOVE_BLUEPRINT_TERMINAL_ITEMS_PACKET_C2S_PACKET, buf)
         }
         return AutoTransferHandler.Result.createNotApplicable()
     }

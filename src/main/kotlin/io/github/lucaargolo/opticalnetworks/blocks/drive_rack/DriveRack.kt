@@ -23,6 +23,9 @@ import net.minecraft.world.World
 
 class DriveRack: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL)) {
 
+    override val bandwidthUsage = 10.0
+    override val energyUsage = 16.0
+
     init {
         defaultState = defaultState.with(Properties.HORIZONTAL_FACING, Direction.SOUTH)
     }

@@ -5,6 +5,7 @@ import io.github.lucaargolo.opticalnetworks.blocks.`interface`.InterfaceBlockEnt
 import io.github.lucaargolo.opticalnetworks.blocks.assembler.AssemblerBlockEntity
 import io.github.lucaargolo.opticalnetworks.items.basic.CraftingMemory
 import io.github.lucaargolo.opticalnetworks.items.basic.CraftingProcessingUnit
+import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
 import io.github.lucaargolo.opticalnetworks.utils.autocrafting.CraftingAction
@@ -46,10 +47,12 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
         return Pair(craftingQueue.size, totalSpace)
     }
 
-    private var craftingQueue = linkedMapOf<CraftingAction, Int>()
-    private var sortedQueue: List<MutableMap.MutableEntry<CraftingAction, Int>>? = null
+    var craftingQueue = linkedMapOf<CraftingAction, Int>()
+        private set
+    var sortedQueue: List<MutableMap.MutableEntry<CraftingAction, Int>>? = null
+        private set
 
-    fun getSortedQueue(): List<MutableMap.MutableEntry<CraftingAction, Int>> {
+    fun cacheSortedQueue(): List<MutableMap.MutableEntry<CraftingAction, Int>> {
         if(sortedQueue == null) {
             sortedQueue = craftingQueue.entries.sortedBy { it.value }.reversed()
         }
@@ -57,7 +60,7 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
     }
 
     fun addCrafting(action: CraftingAction, priority: Int) {
-        currentNetwork?.processingActions?.put(action, pos)
+        currentNetwork?.addProcessingAction(action, pos)
         craftingQueue[action] = priority
         sortedQueue = null
         markDirty()
@@ -65,7 +68,7 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
     }
 
     fun removeCrafting(action: CraftingAction) {
-        currentNetwork?.processingActions?.remove(action)
+        currentNetwork?.removeProcessingAction(action)
         craftingQueue.remove(action)
         sortedQueue = null
         markDirty()
@@ -73,20 +76,16 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
     }
 
     fun removeCrafting(id: Int) {
-        val it = craftingQueue.iterator()
-        var index = 0
-        while (it.hasNext()) {
-            val entry = it.next()
+        cacheSortedQueue().forEachIndexed { index, (action, _) ->
             if(index == id) {
-                currentNetwork?.processingActions?.remove(entry.key)
+                currentNetwork?.removeProcessingAction(action)
+                craftingQueue.remove(action)
                 sortedQueue = null
-                it.remove()
-                break
+                markDirty()
+                if(world?.isClient == false) sync()
+                return
             }
-            index++
         }
-        markDirty()
-        sync()
     }
 
     var delayCount = 0
@@ -95,7 +94,7 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
         super.tick()
         if (world?.isClient == false && craftingQueue.isNotEmpty() && delayCount > 20/getCraftingSpeed()) {
             (0 until getCraftingCores()).forEach {
-                val sortedQueue = getSortedQueue()
+                val sortedQueue = cacheSortedQueue()
                 if(sortedQueue.size >= it+1) {
                     val priority = sortedQueue[it].value
                     val action = sortedQueue[it].key
@@ -112,7 +111,7 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
             action.necessaryActions.forEach {
                 if(it.state != CraftingAction.State.FINISHED) {
                     //aqui eu ainda tenho q checar se tem cpu e colocar um State.MISSING_CPU
-                    if(currentNetwork!!.processingActions[it] == null)
+                if(!currentNetwork!!.getProcessingActions().containsKey(it))
                         addCrafting(it, priority+1)
                     //action.state = CraftingAction.State.WAITING_SUB
                     return@forEach
@@ -125,11 +124,11 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
             if(action.quantity > 0) {
                 val machine = world!!.getBlockEntity(action.machinePos)
                 if(machine is AssemblerBlockEntity) {
-                    if (!currentNetwork!!.processingMachines.contains(action.machinePos)) {
+                    if (!currentNetwork!!.getProcessingMachines().containsKey(action.machinePos)) {
                         action.state = CraftingAction.State.PROCESSING
-                        currentNetwork!!.processingMachines.add(action.machinePos!!)
+                        currentNetwork!!.addProcessingMachine(action.machinePos!!, action)
                         if(tryToCraft(action, machine, Direction.DOWN)) action.quantity--
-                        else currentNetwork!!.processingMachines.remove(action.machinePos!!)
+                        else currentNetwork!!.removeProcessingMachine(action.machinePos!!)
                     } else action.state = CraftingAction.State.WAITING_MACHINE
                 }
                 if(machine is InterfaceBlockEntity) {
@@ -138,12 +137,12 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
                         val machinePos = action.machinePos!!
                         var be: AssemblerBlockEntity? = null
                         setOf<BlockPos>(machinePos.up(), machinePos.down(), machinePos.east(), machinePos.west(), machinePos.north(), machinePos.south()).forEach {
-                            if(!currentNetwork!!.processingMachines.contains(it) && world!!.getBlockEntity(it) is AssemblerBlockEntity)
+                            if(!currentNetwork!!.getProcessingMachines().containsKey(it) && world!!.getBlockEntity(it) is AssemblerBlockEntity)
                                 be = world!!.getBlockEntity(it) as AssemblerBlockEntity
                         }
                         if(be != null) {
                             action.state = CraftingAction.State.PROCESSING
-                            currentNetwork!!.processingMachines.add(be!!.pos)
+                            currentNetwork!!.addProcessingMachine(be!!.pos, action)
                             //e vamos trocar a blueprint de uma pra outra
                             var blueprintStack: ItemStack? = null
                             var blueprintStackSlot = 0
@@ -159,7 +158,7 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
                                 be!!.setStack(0, it)
                             }
                             if(tryToCraft(action, be!!, Direction.DOWN)) action.quantity--
-                            else currentNetwork!!.processingMachines.remove(be!!.pos)
+                            else currentNetwork!!.removeProcessingMachine(be!!.pos)
                         }else{
                             action.state = CraftingAction.State.WAITING_MACHINE
                         }
@@ -180,18 +179,18 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
                             }
                         }
 
-                        if(interfaceState[Interface.DIRECTIONAL] && inventory != null && !currentNetwork!!.processingMachines.contains(targetPos)) {
+                        if(interfaceState[Interface.DIRECTIONAL] && inventory != null && !currentNetwork!!.getProcessingMachines().containsKey(targetPos)) {
                             action.state = CraftingAction.State.PROCESSING
-                            currentNetwork!!.processingMachines.add(targetPos)
+                            currentNetwork!!.addProcessingMachine(targetPos, action)
                             val outputs = mutableListOf<ItemStack>()
                             action.outputStacks.forEach {
                                 outputs.add(it.copy())
                             }
-                            currentNetwork!!.processingItems[outputs] = targetPos
+                            currentNetwork!!.addProcessingItem(outputs, targetPos)
                             if(tryToCraft(action, inventory, interfaceState[Properties.FACING].opposite)) action.quantity--
                             else {
-                                currentNetwork!!.processingMachines.remove(targetPos)
-                                currentNetwork!!.processingItems.remove(outputs)
+                                currentNetwork!!.removeProcessingMachine(targetPos)
+                                currentNetwork!!.removeProcessingItem(outputs)
                             }
                         } else action.state = CraftingAction.State.WAITING_MACHINE
                     }
@@ -389,7 +388,12 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
 
     override fun fromTag(state: BlockState, tag: CompoundTag) {
         super.fromTag(state, tag)
-        craftingQueue.forEach { (action, _) -> removeCrafting(action) }
+        val it = craftingQueue.iterator()
+        while (it.hasNext()) {
+            val entry = it.next()
+            currentNetwork?.removeProcessingAction(entry.key)
+            it.remove()
+        }
         sortedQueue = null
         val craftingQueueTag = tag.get("craftingQueue") as ListTag
         craftingQueueTag.forEach {

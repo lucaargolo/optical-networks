@@ -31,6 +31,9 @@ import net.minecraft.world.World
 
 open class Terminal: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL)) {
 
+    override val bandwidthUsage = 10.0
+    override val energyUsage = 16.0
+
     interface IScreenHandler {
         val network: Network
         val terminalSlots: MutableList<TerminalSlot>

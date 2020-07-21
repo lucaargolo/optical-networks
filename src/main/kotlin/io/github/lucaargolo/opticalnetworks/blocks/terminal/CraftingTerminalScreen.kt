@@ -2,7 +2,7 @@ package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
-import io.github.lucaargolo.opticalnetworks.packets.CLEAR_TERMINAL_TABLE
+import io.github.lucaargolo.opticalnetworks.packets.CLEAR_TERMINAL_TABLE_C2S_PACKET
 import io.github.lucaargolo.opticalnetworks.packets.terminalConfig
 import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
 import io.netty.buffer.Unpooled
@@ -29,7 +29,7 @@ open class CraftingTerminalScreen(handler: ScreenHandler, inventory: PlayerInven
         super.init()
         clearTable = object: ButtonWidget(x+15, y+75+18*(terminalConfig.size.rows-3), 8, 8, LiteralText(""), PressAction{
             (clearTable as PressableWidget).isPressed = true
-            ClientSidePacketRegistry.INSTANCE.sendToServer(CLEAR_TERMINAL_TABLE, PacketByteBuf(Unpooled.buffer()))
+            ClientSidePacketRegistry.INSTANCE.sendToServer(CLEAR_TERMINAL_TABLE_C2S_PACKET, PacketByteBuf(Unpooled.buffer()))
         }), PressableWidget {
             override var isPressed = false
             override fun renderButton(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {

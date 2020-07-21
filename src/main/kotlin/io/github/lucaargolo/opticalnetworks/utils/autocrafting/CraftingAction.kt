@@ -16,7 +16,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.MathHelper
 import net.minecraft.world.World
 
-class CraftingAction private constructor(val network: Network, val stacks: MutableList<ItemStack>, val craftables: MutableList<ItemStack>, val world: World, val craftStack: ItemStack, var requestedQuantity: Int) {
+class CraftingAction private constructor(val network: Network, val stacks: MutableList<ItemStack>, val craftables: MutableList<ItemStack>, val world: World, val craftStack: ItemStack, var requestedQuantity: Int, val isChild: Boolean) {
 
     enum class Type {
         CRAFTING,
@@ -58,15 +58,15 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
     var quantity = 0
 
     companion object {
-        fun create(network: Network, stacks: MutableList<ItemStack>, craftables: MutableList<ItemStack>, world: World, craftStack: ItemStack, requestedQuantity: Int): CraftingAction {
-            val action = CraftingAction(network, stacks, craftables, world, craftStack, requestedQuantity)
+        fun create(network: Network, stacks: MutableList<ItemStack>, craftables: MutableList<ItemStack>, world: World, craftStack: ItemStack, requestedQuantity: Int, isChild: Boolean): CraftingAction {
+            val action = CraftingAction(network, stacks, craftables, world, craftStack, requestedQuantity, isChild)
             action.properlyInitialize()
             return action
         }
 
         fun fromTag(tag: CompoundTag, world: World): CraftingAction {
             val state = NetworkState.fromTag(world, tag.getCompound("networkState"))
-            val action = CraftingAction(state.getNetworkByUUID(tag.getUuid("networkUUID")), mutableListOf(), mutableListOf(), world, getStackFromTag(tag.getCompound("craftStack")), 0)
+            val action = CraftingAction(state.getNetworkByUUID(tag.getUuid("networkUUID")), mutableListOf(), mutableListOf(), world, getStackFromTag(tag.getCompound("craftStack")), 0, tag.getBoolean("isChild"))
             (tag.get("necessaryActions") as ListTag).forEach {
                 action.necessaryActions.add(fromTag(it as CompoundTag, world))
             }
@@ -108,6 +108,7 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
         tag.putUuid("networkUUID", network.id)
         tag.put("craftStack", getTagFromStack(craftStack))
         tag.putInt("quantity", quantity)
+        tag.putBoolean("isChild", isChild)
         tag.putInt("state", State.values().indexOf(state))
         val necessaryActionsListTag = ListTag()
         necessaryActions.forEach {
@@ -295,7 +296,7 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
         missingButCraftable.forEach {
             craftables.forEach {crfStk ->
                 if(areStacksCompatible(it.key, crfStk)) {
-                    necessaryActions.add(create(network, stacks, craftables, world, it.key, it.value))
+                    necessaryActions.add(create(network, stacks, craftables, world, it.key, it.value, true))
                 }
             }
 

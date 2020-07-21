@@ -1,6 +1,7 @@
 package io.github.lucaargolo.opticalnetworks.blocks.controller
 
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
+import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.blocks.CableConnectable
 import io.github.lucaargolo.opticalnetworks.utils.getNetworkState
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
@@ -31,6 +32,9 @@ import net.minecraft.world.WorldAccess
 
 class Controller: BlockWithEntity(FabricBlockSettings.of(Material.METAL)), CableConnectable {
 
+    override val bandwidthUsage = 0.0
+    override val energyUsage = 0.0
+
     override fun onPlaced(world: World, pos: BlockPos, state: BlockState, placer: LivingEntity?, itemStack: ItemStack) {
         if(world is ServerWorld) {
             val networkState = getNetworkState(world)
@@ -43,7 +47,35 @@ class Controller: BlockWithEntity(FabricBlockSettings.of(Material.METAL)), Cable
         if (!state.isOf(newState.block)) {
             if(world is ServerWorld) {
                 val networkState = getNetworkState(world)
+                val be = world.getBlockEntity(pos) as? ControllerBlockEntity
+                var excessEnergy = 0.0
+                be?.let {
+                    if(it.currentNetwork?.mainController?.equals(pos) == true && it.storedPower > 100000.0) {
+                        excessEnergy = it.storedPower-100000.0
+                    }
+                }
                 networkState.updateBlock(world, pos)
+                listOf(pos.up(), pos.down(), pos.south(), pos.north(), pos.west(), pos.east()).forEach {
+                    if(excessEnergy <= 0.0) return@forEach
+                    val newNetwork = networkState.getNetwork(world, it)
+                    newNetwork?.let { net ->
+                        if(net.type == Network.Type.CONTROLLER) {
+                            val power = net.getStoredPower()
+                            val maxPower = net.getMaxStoredPower()
+                            if(power + excessEnergy <= maxPower) {
+                                (world.getBlockEntity(net.mainController) as? ControllerBlockEntity)?.let{ newBe ->
+                                    newBe.setStored(newBe.storedPower + excessEnergy)
+                                    excessEnergy = 0.0
+                                }
+                            }else{
+                                (world.getBlockEntity(net.mainController) as? ControllerBlockEntity)?.let { newBe ->
+                                    newBe.setStored(maxPower)
+                                    excessEnergy -= maxPower - power
+                                }
+                            }
+                        }
+                    }
+                }
             }
             super.onStateReplaced(state, world, pos, newState, notify)
         }
@@ -122,9 +154,7 @@ class Controller: BlockWithEntity(FabricBlockSettings.of(Material.METAL)), Cable
         return if(world.getBlockEntity(pos) is ControllerBlockEntity) {
             if(!world.isClient) {
                 val network = getNetworkState(world as ServerWorld).getNetwork(world, pos)
-                if(network == null) {
-                    player.sendMessage(LiteralText("This is not a valid network!"), false)
-                }else{
+                if(network != null) {
                     val tag = network.getOptimizedStateTag(CompoundTag())
                     ContainerProviderRegistry.INSTANCE.openContainer(getBlockId(this), player as ServerPlayerEntity?) { buf ->
                         buf.writeBlockPos(network.mainController)
