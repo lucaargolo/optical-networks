@@ -47,35 +47,7 @@ class Controller: BlockWithEntity(FabricBlockSettings.of(Material.METAL)), Cable
         if (!state.isOf(newState.block)) {
             if(world is ServerWorld) {
                 val networkState = getNetworkState(world)
-                val be = world.getBlockEntity(pos) as? ControllerBlockEntity
-                var excessEnergy = 0.0
-                be?.let {
-                    if(it.currentNetwork?.mainController?.equals(pos) == true && it.storedPower > 100000.0) {
-                        excessEnergy = it.storedPower-100000.0
-                    }
-                }
                 networkState.updateBlock(world, pos)
-                listOf(pos.up(), pos.down(), pos.south(), pos.north(), pos.west(), pos.east()).forEach {
-                    if(excessEnergy <= 0.0) return@forEach
-                    val newNetwork = networkState.getNetwork(world, it)
-                    newNetwork?.let { net ->
-                        if(net.type == Network.Type.CONTROLLER) {
-                            val power = net.getStoredPower()
-                            val maxPower = net.getMaxStoredPower()
-                            if(power + excessEnergy <= maxPower) {
-                                (world.getBlockEntity(net.mainController) as? ControllerBlockEntity)?.let{ newBe ->
-                                    newBe.setStored(newBe.storedPower + excessEnergy)
-                                    excessEnergy = 0.0
-                                }
-                            }else{
-                                (world.getBlockEntity(net.mainController) as? ControllerBlockEntity)?.let { newBe ->
-                                    newBe.setStored(maxPower)
-                                    excessEnergy -= maxPower - power
-                                }
-                            }
-                        }
-                    }
-                }
             }
             super.onStateReplaced(state, world, pos, newState, notify)
         }
@@ -137,7 +109,7 @@ class Controller: BlockWithEntity(FabricBlockSettings.of(Material.METAL)), Cable
         return getShape(state)
     }
 
-    open fun getShape(state: BlockState): VoxelShape {
+    private fun getShape(state: BlockState): VoxelShape {
         return when(state[PILLAR]) {
             Pillar.AXIS_X -> createCuboidShape(0.0, 1.0, 1.0, 16.0, 15.0, 15.0)
             Pillar.AXIS_Y -> createCuboidShape(1.0, 0.0, 1.0, 15.0, 16.0, 15.0)

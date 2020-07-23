@@ -3,10 +3,7 @@
 package io.github.lucaargolo.opticalnetworks
 
 import com.mojang.datafixers.util.Pair
-import io.github.lucaargolo.opticalnetworks.blocks.BLUEPRINT_TERMINAL
-import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
-import io.github.lucaargolo.opticalnetworks.blocks.initBlocks
-import io.github.lucaargolo.opticalnetworks.blocks.initBlocksClient
+import io.github.lucaargolo.opticalnetworks.blocks.*
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScreen
 import io.github.lucaargolo.opticalnetworks.blocks.terminal.BlueprintTerminalScreenHandler
@@ -17,10 +14,12 @@ import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPackets
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPacketsClient
+import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
+import net.minecraft.block.Block
 import net.minecraft.client.render.model.ModelBakeSettings
 import net.minecraft.client.render.model.ModelLoader
 import net.minecraft.client.render.model.UnbakedModel
@@ -28,15 +27,20 @@ import net.minecraft.client.texture.Sprite
 import net.minecraft.client.util.ModelIdentifier
 import net.minecraft.client.util.SpriteIdentifier
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.Item
+import net.minecraft.item.ItemGroup
+import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.resource.ResourceManager
 import net.minecraft.screen.ScreenHandlerContext
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.Identifier
+import net.minecraft.util.registry.Registry
 import java.util.function.Consumer
 import java.util.function.Function
 
 const val MOD_ID = "opticalnetworks"
+val CREATIVE_TAB: ItemGroup = FabricItemGroupBuilder.create(Identifier(MOD_ID, "creative_tab")).icon { ItemStack(CONTROLLER) }.build()
 
 fun init() {
     initBlocks()

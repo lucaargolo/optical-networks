@@ -20,7 +20,7 @@ open class NetworkBlockEntity(val block: Block): BlockEntity(getEntityType(block
     var currentNetwork: Network? = null;
     open var currentColor: Color? = null
         set(value) {
-            if(world?.isClient == true)
+            if(world?.isClient == true && value != field)
                 MinecraftClient.getInstance().worldRenderer.updateBlock(world, pos, cachedState, cachedState, 0)
             field = value
         }

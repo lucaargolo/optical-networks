@@ -94,6 +94,7 @@ class NetworkState(val world: World): PersistentState(MOD_ID) {
         }
         networks[n.id] = n
         n.updateColor()
+        markDirty()
         return n
     }
 
@@ -130,16 +131,26 @@ class NetworkState(val world: World): PersistentState(MOD_ID) {
             networks[it]?.componentNetworks?.remove(network.id)
         }
         networks.remove(network.id)
+        markDirty()
     }
 
     fun recreateNetwork(network: Network) {
         removeNetwork(network)
         val updatedPos = mutableSetOf<BlockPos>()
+        var excessPower = network.storedPower
         network.components.forEach {
             if(!updatedPos.contains(it)) {
                 val newNetwork = createNetwork(network.world as ServerWorld, it);
                 newNetwork.components.let { componentPos ->
                     updatedPos.addAll(componentPos)
+                }
+                val maxPower = newNetwork.getMaxStoredPower()
+                if(excessPower > maxPower) {
+                    newNetwork.storedPower = maxPower
+                    excessPower -= maxPower
+                }else{
+                    newNetwork.storedPower = excessPower
+                    excessPower = 0.0
                 }
             }
         }

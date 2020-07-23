@@ -163,7 +163,7 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         if(be is ControllerBlockEntity) {
             val texts = mutableListOf<Text>()
             texts.add(LiteralText("${Formatting.GOLD}Energy:"))
-            texts.add(LiteralText("${be.storedPower} / ${handler.network.getMaxStoredPower()}"))
+            texts.add(LiteralText("${handler.network.storedPower} / ${handler.network.getMaxStoredPower()}"))
             renderTooltip(matrices, texts, mouseX, mouseY)
         }
     }
@@ -177,7 +177,7 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
             playerInventory.player.world.getBlockEntity(it)
         }
         if(be is ControllerBlockEntity) {
-            val energy = MathHelper.ceil((be.storedPower/handler.network.getMaxStoredPower())*65)
+            val energy = MathHelper.ceil((handler.network.storedPower/handler.network.getMaxStoredPower())*65)
             drawTexture(matrices, x+10, y+18+(65-energy), 65, (65-energy), 12, energy)
         }
         val pair = handler.network.getSpace()

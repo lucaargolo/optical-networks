@@ -15,7 +15,7 @@ class ModBlockItem(block: Block, settings: Settings): BlockItem(block, settings)
     override fun appendTooltip(stack: ItemStack, world: World?, tooltip: MutableList<Text>, context: TooltipContext) {
         super.appendTooltip(stack, world, tooltip, context)
         (block as? CableConnectable)?.let {
-            if(it.energyUsage > 0) tooltip.add(LiteralText("${Formatting.BLUE}Energy usage: ${Formatting.GRAY}${it.energyUsage} RF/t"))
+            if(it.energyUsage > 0) tooltip.add(LiteralText("${Formatting.BLUE}Energy usage: ${Formatting.GRAY}${it.energyUsage} E/t"))
             if(it.bandwidthUsage > 0) tooltip.add(LiteralText("${Formatting.BLUE}Bandwidth usage: ${Formatting.GRAY}${it.bandwidthUsage}"))
         }
     }

@@ -16,18 +16,17 @@ minecraft {
 
 
 repositories {
-    maven { url = "http://maven.fabricmc.net/" }
+    maven {
+        name = "Fabric"
+        url = "http://maven.fabricmc.net/"
+    }
     maven {
         name = "Modmuss50"
         url = "https://maven.modmuss50.me/"
     }
     maven {
-        name = "grondag"
-        url = "https://grondag-repo.appspot.com"
-        credentials {
-            username "guest"
-            password ""
-        }
+        name = "dblsaiko"
+        url = "https://maven.dblsaiko.net/"
     }
     maven {
         name = "CottonMC"
@@ -46,6 +45,7 @@ dependencies {
     modImplementation "TechReborn:TechReborn-1.16:${project.techreborn_version}"
     modImplementation "io.github.prospector:modmenu:${project.modmenu_version}"
     modImplementation "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
+
     modImplementation("grondag:darkness-${project.mc_tag}:${project.darkness_version}.+") { transitive = false }
 
     modApi ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false }

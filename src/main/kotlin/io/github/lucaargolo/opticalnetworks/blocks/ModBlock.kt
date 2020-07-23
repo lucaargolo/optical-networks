@@ -1,5 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.blocks
 
+import io.github.lucaargolo.opticalnetworks.CREATIVE_TAB
 import io.github.lucaargolo.opticalnetworks.utils.ModBlockItem
 import net.minecraft.block.Block
 import net.minecraft.item.BlockItem
@@ -15,7 +16,7 @@ open class ModBlock(block: Block) {
 
     open fun init(identifier: Identifier) {
         Registry.register(Registry.BLOCK, identifier, block)
-        Registry.register(Registry.ITEM, identifier, ModBlockItem(block, Item.Settings().group(ItemGroup.MISC)))
+        Registry.register(Registry.ITEM, identifier, ModBlockItem(block, Item.Settings().group(CREATIVE_TAB)))
     }
 
     open fun initClient(identifier: Identifier) {}

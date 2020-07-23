@@ -32,6 +32,7 @@ import net.minecraft.world.World
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
+
 class Network private constructor(val state: NetworkState, var world: World, val type: Type) {
 
     enum class Type {
@@ -45,6 +46,8 @@ class Network private constructor(val state: NetworkState, var world: World, val
 
     var controllerNetworks: LinkedHashSet<UUID> = linkedSetOf()
     var componentNetworks: LinkedHashSet<UUID> = linkedSetOf()
+
+    var storedPower = 0.0
 
     private var processingActions = linkedMapOf<CraftingAction, BlockPos>()
     
@@ -147,23 +150,14 @@ class Network private constructor(val state: NetworkState, var world: World, val
         }
     }
 
-    fun getStoredPower(): Double {
-        return if(type == Type.COMPONENTS) {
-            getControllerNetwork()?.getStoredPower() ?: 0.0
-        }else{
-            (world.getBlockEntity(mainController) as? ControllerBlockEntity)?.storedPower ?: 0.0
-        }
-    }
-
     fun getMaxStoredPower(): Double {
         if(type == Type.COMPONENTS) {
             return getControllerNetwork()?.getMaxStoredPower() ?: 0.0
         }else{
-            var maxStoredPower = 100000.0
+            var maxStoredPower = MAX_STORED_POWER
             componentsMap.forEach { (pos, block) ->
-                if(block == CONTROLLER && pos != mainController) {
-                    maxStoredPower += (world.getBlockEntity(pos) as? ControllerBlockEntity)?.maxStoredPower ?: 0.0
-                }
+                if(block == CONTROLLER && pos != mainController && world.getBlockEntity(pos) is ControllerBlockEntity)
+                    maxStoredPower += MAX_STORED_POWER
             }
             return maxStoredPower
         }
@@ -386,6 +380,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
                 val be = world.getBlockEntity(p)
                 if(be is NetworkBlockEntity) {
                     be.currentColor = color
+                    be.markDirty()
                     be.sync()
                 }
             }
@@ -596,6 +591,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
 
     fun toTag(tag: CompoundTag): CompoundTag {
         tag.putInt("type", Type.values().indexOf(type))
+        tag.putDouble("storedPower", storedPower)
         tag.putLong("mainController", mainController.asLong())
         tag.putUuid("id", id)
         val controllerNetworksTag = ListTag()
@@ -622,6 +618,8 @@ class Network private constructor(val state: NetworkState, var world: World, val
 
     companion object {
 
+        const val MAX_STORED_POWER = 100000.0
+
         fun create(state: NetworkState, world: ServerWorld, type: Type): Network {
             return Network(state, world, type)
         }
@@ -629,6 +627,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
         fun fromTag(state: NetworkState, world: World, tag: CompoundTag): Network {
             val type = Type.values()[tag.getInt("type")]
             val network = Network(state, world, type)
+            network.storedPower = tag.getDouble("storedPower")
             network.id = tag.getUuid("id")
             network.mainController = BlockPos.fromLong(tag.getLong("mainController"))
             val controllerNetworksTag = tag.get("controllerNetworks") as ListTag
