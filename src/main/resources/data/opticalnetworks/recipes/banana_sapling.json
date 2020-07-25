@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "tag": "minecraft:saplings"
+    },
+    {
+      "item": "opticalnetworks:banana"
+    }
+  ],
+  "result": {
+    "item": "opticalnetworks:banana_sapling",
+    "count": 1
+  }
+}

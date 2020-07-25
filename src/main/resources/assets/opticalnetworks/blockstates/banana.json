@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "age=0": { "model": "opticalnetworks:block/banana_stage0" },
+    "age=1": { "model": "opticalnetworks:block/banana_stage1" },
+    "age=2": { "model": "opticalnetworks:block/banana_stage2" }
+  }
+}

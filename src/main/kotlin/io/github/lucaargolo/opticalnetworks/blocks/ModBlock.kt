@@ -9,14 +9,17 @@ import net.minecraft.item.ItemGroup
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 
-open class ModBlock(block: Block) {
+open class ModBlock(block: Block, private val hasModBlock: Boolean) {
+
+    constructor(block: Block): this(block, true)
 
     var block: Block = block
         private set
 
     open fun init(identifier: Identifier) {
         Registry.register(Registry.BLOCK, identifier, block)
-        Registry.register(Registry.ITEM, identifier, ModBlockItem(block, Item.Settings().group(CREATIVE_TAB)))
+        if(hasModBlock)
+            Registry.register(Registry.ITEM, identifier, ModBlockItem(block, Item.Settings().group(CREATIVE_TAB)))
     }
 
     open fun initClient(identifier: Identifier) {}

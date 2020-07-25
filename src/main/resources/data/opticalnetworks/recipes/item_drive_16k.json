@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " # ",
+    "#M#",
+    " S "
+  ],
+  "key": {
+    "#": {
+      "item": "opticalnetworks:item_drive_4k"
+    },
+    "M": {
+      "item": "opticalnetworks:item_drive_1k"
+    },
+    "S": {
+      "item": "opticalnetworks:advanced_microchip"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:item_drive_16k",
+    "count": 1
+  }
+}

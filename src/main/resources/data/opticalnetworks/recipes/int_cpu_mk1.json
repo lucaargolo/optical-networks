@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#D#",
+    "DKD",
+    "#D#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:lapis_lazuli"
+    },
+    "D": {
+      "item": "opticalnetworks:microchip"
+    },
+    "K": {
+      "item": "opticalnetworks:advanced_microchip"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:int_cpu_mk1",
+    "count": 1
+  }
+}

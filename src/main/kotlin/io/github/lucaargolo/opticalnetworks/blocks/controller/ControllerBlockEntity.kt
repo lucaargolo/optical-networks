@@ -17,6 +17,8 @@ import kotlin.random.asKotlinRandom
 
 class ControllerBlockEntity(block: Block): NetworkBlockEntity(block), EnergyStorage {
 
+    var networkStoredPowerCache = 0.0
+
     override var currentColor: Color? = getRandomColor()
         set(value) {
             if(world?.isClient == true && value != field)
@@ -38,5 +40,15 @@ class ControllerBlockEntity(block: Block): NetworkBlockEntity(block), EnergyStor
     override fun getMaxStoredPower() = currentNetwork?.getMaxStoredPower() ?: 0.0
 
     override fun getStored(p0: EnergySide) = currentNetwork?.storedPower ?: 0.0
+
+    override fun toTag(tag: CompoundTag): CompoundTag {
+        tag.putDouble("cache", networkStoredPowerCache)
+        return super.toTag(tag)
+    }
+
+    override fun fromTag(state: BlockState, tag: CompoundTag) {
+        networkStoredPowerCache = tag.getDouble("cache")
+        super.fromTag(state, tag)
+    }
 
 }

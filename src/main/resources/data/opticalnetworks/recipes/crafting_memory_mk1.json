@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#i#",
+    "GGG"
+  ],
+  "key": {
+    "#": {
+      "item": "opticalnetworks:microchip"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:gold_nugget"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:crafting_memory_mk1",
+    "count": 1
+  }
+}

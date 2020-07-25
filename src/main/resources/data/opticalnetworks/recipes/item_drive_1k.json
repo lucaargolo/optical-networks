@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#",
+    "M",
+    "G"
+  ],
+  "key": {
+    "#": {
+      "item": "opticalnetworks:microchip"
+    },
+    "M": {
+      "item": "opticalnetworks:basic_disc"
+    },
+    "G": {
+      "item": "minecraft:gold_nugget"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:item_drive_1k",
+    "count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D ",
+    "DKD",
+    " D "
+  ],
+  "key": {
+    "D": {
+      "item": "opticalnetworks:advanced_microchip"
+    },
+    "K": {
+      "item": "opticalnetworks:int_cpu_mk2"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:int_cpu_mk3",
+    "count": 1
+  }
+}

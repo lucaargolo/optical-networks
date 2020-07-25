@@ -3,10 +3,12 @@
   "package": "io.github.lucaargolo.opticalnetworks.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "BeachBiomeMixin",
     "ServerPlayerEntityMixin",
     "ShapedRecipeMixin",
     "ShapelessRecipeMixin",
-    "SlotMixin"
+    "SlotMixin",
+    "TreeFeatureMixin"
   ],
   "client": [
   ],

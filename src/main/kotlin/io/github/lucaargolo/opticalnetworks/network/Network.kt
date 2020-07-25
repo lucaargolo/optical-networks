@@ -11,6 +11,7 @@ import io.github.lucaargolo.opticalnetworks.blocks.crafting.CraftingComputerBloc
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRack
 import io.github.lucaargolo.opticalnetworks.blocks.drive_rack.DriveRackBlockEntity
 import io.github.lucaargolo.opticalnetworks.items.basic.ItemDrive
+import io.github.lucaargolo.opticalnetworks.network.blocks.CableConnectable
 import io.github.lucaargolo.opticalnetworks.network.entity.NetworkBlockEntity
 import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.utils.autocrafting.CraftingAction
@@ -31,6 +32,7 @@ import net.minecraft.util.registry.Registry
 import net.minecraft.world.World
 import java.util.*
 import kotlin.collections.LinkedHashMap
+import kotlin.math.min
 
 
 class Network private constructor(val state: NetworkState, var world: World, val type: Type) {
@@ -48,6 +50,23 @@ class Network private constructor(val state: NetworkState, var world: World, val
     var componentNetworks: LinkedHashSet<UUID> = linkedSetOf()
 
     var storedPower = 0.0
+        get() {
+            return if(this.type == Type.COMPONENTS)
+                getControllerNetwork()?.storedPower ?: field
+            else field
+        }
+        set(value) {
+            if(this.type == Type.COMPONENTS)
+                getControllerNetwork()?.storedPower = value
+            else {
+                field = value
+                (world.getBlockEntity(mainController) as? ControllerBlockEntity)?.let{
+                    it.networkStoredPowerCache = value
+                    it.markDirty()
+                    it.sync()
+                }
+            }
+        }
 
     private var processingActions = linkedMapOf<CraftingAction, BlockPos>()
     
@@ -164,7 +183,15 @@ class Network private constructor(val state: NetworkState, var world: World, val
     }
 
     fun isValid(): Boolean {
-        return (type == Type.COMPONENTS && controllerNetworks.size == 1 && getControllerNetwork()?.isValid() == true) || (type == Type.CONTROLLER && world.getBlockEntity(mainController) is ControllerBlockEntity)
+        return ((type == Type.COMPONENTS && controllerNetworks.size == 1 && getControllerNetwork()?.isValid() == true) || (type == Type.CONTROLLER && world.getBlockEntity(mainController) is ControllerBlockEntity)) && storedPower >= 128.0
+    }
+
+    fun getBandwidthOverflow(): Double {
+        var currentUsage = 0.0
+        componentsMap.forEach { (block, _) -> currentUsage += (block as? CableConnectable)?.bandwidthUsage ?: 0.0 }
+        val overflowPercentage = ((min(0.0, currentUsage - 1000.0)/100)*2)
+        if(overflowPercentage != 0.0) return 1/overflowPercentage
+        return 0.0
     }
 
     fun addComponent(blockPos: BlockPos, block: Block) {

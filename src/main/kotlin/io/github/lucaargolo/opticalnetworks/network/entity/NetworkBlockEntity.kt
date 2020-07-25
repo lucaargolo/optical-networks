@@ -3,6 +3,7 @@ package io.github.lucaargolo.opticalnetworks.network.entity
 import io.github.lucaargolo.opticalnetworks.blocks.controller.Controller
 import io.github.lucaargolo.opticalnetworks.blocks.getEntityType
 import io.github.lucaargolo.opticalnetworks.network.Network
+import io.github.lucaargolo.opticalnetworks.network.blocks.CableConnectable
 import io.github.lucaargolo.opticalnetworks.utils.getNetworkState
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable
 import net.minecraft.block.Block
@@ -25,8 +26,8 @@ open class NetworkBlockEntity(val block: Block): BlockEntity(getEntityType(block
             field = value
         }
 
-    fun isNetworkInvalid(): Boolean {
-        return currentNetwork == null || !currentNetwork!!.isValid()
+    private fun isNetworkInvalid(): Boolean {
+        return currentNetwork == null || !currentNetwork!!.isValid() || currentNetwork!!.storedPower < (this.block as? CableConnectable)?.energyUsage ?: 0.0
     }
 
     override fun tick() {
@@ -40,9 +41,11 @@ open class NetworkBlockEntity(val block: Block): BlockEntity(getEntityType(block
             if(isNetworkInvalid() && block !is Controller) {
                 if(cachedState[Properties.ENABLED]) world!!.setBlockState(pos, cachedState.with(Properties.ENABLED, false))
                 currentColor = null
+                markDirty()
                 sync()
             }else{
                 if(!cachedState[Properties.ENABLED]) world!!.setBlockState(pos, cachedState.with(Properties.ENABLED, true))
+                currentNetwork!!.storedPower -= (this.block as? CableConnectable)?.energyUsage ?: 0.0
             }
         }
     }

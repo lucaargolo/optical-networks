@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#i#"
+  ],
+  "key": {
+    "#": {
+      "item": "opticalnetworks:crafting_memory_mk3"
+    },
+    "i": {
+      "item": "opticalnetworks:advanced_microchip"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:crafting_memory_mk4",
+    "count": 1
+  }
+}

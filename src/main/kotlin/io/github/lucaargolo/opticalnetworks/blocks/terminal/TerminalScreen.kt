@@ -181,7 +181,8 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         hdl.terminalSlots.forEach { slot: TerminalSlot ->
             val i = slot.x + x - 1
             val j = slot.y + y - 1
-            if(mouseX in (i..i+18) && mouseY in (j..j+18)) hoverTerminalSlot = slot
+            if(!hdl.network.isValid()) DrawableHelper.fill(matrices, x+slot.x, y+slot.y, x+slot.x+16, y+slot.y+16, 0x60666666)
+            else if(mouseX in (i..i+18) && mouseY in (j..j+18)) hoverTerminalSlot = slot
             slot.item = ItemStack.EMPTY
             slot.count = 0
         }
@@ -200,15 +201,11 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
             val iterator = stacksAndCraftablesMap.iterator()
             while(iterator.hasNext()) {
                 val entry = iterator.next()
-                if(entry.value && areStacksCompatible(
-                        storedStack,
-                        entry.key
-                    )
-                ) {
+                if(entry.value && areStacksCompatible(storedStack, entry.key)) {
                     found = true
                     iterator.remove()
                     stacksAndCraftablesMap[storedStack] = true
-                    break;
+                    break
                 }
             }
             if(!found) stacksAndCraftablesMap[storedStack] = false

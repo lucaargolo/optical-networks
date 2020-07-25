@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#O#",
+    "OGO",
+    "#O#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:glowstone_dust"
+    },
+    "O": {
+      "item": "opticalnetworks:microchip"
+    },
+    "G": {
+      "item": "minecraft:diamond"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:advanced_microchip",
+    "count": 1
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#D#",
+    "DKD",
+    "#D#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:orange_dye"
+    },
+    "D": {
+      "item": "opticalnetworks:microchip"
+    },
+    "K": {
+      "item": "opticalnetworks:advanced_microchip"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:and_cpu_mk1",
+    "count": 1
+  }
+}

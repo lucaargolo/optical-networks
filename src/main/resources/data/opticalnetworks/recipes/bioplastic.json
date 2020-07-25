@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": {
+    "item": "opticalnetworks:raw_bioplastic"
+  },
+  "result": "opticalnetworks:bioplastic",
+  "experience": 0,
+  "cookingtime": 200
+}

@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#GB",
+    "IXI",
+    "ICI"
+  ],
+  "key": {
+    "#": {
+      "item": "opticalnetworks:red_led"
+    },
+    "G": {
+      "item": "opticalnetworks:green_led"
+    },
+    "B": {
+      "item": "opticalnetworks:blue_led"
+    },
+    "I": {
+      "item": "opticalnetworks:bioplastic"
+    },
+    "X": {
+      "item": "opticalnetworks:led"
+    },
+    "C": {
+      "item": "opticalnetworks:microchip"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:screen_component",
+    "count": 1
+  }
+}
