@@ -23,9 +23,9 @@ class Wrench(settings: Settings): Item(settings) {
         }
         if(state.contains(Properties.HORIZONTAL_FACING)) {
             if(context.player?.isSneaking == true)
-                context.world.setBlockState(context.blockPos, state.with(Properties.FACING, context.playerFacing))
+                context.world.setBlockState(context.blockPos, state.with(Properties.HORIZONTAL_FACING, context.playerFacing))
             else
-                context.world.setBlockState(context.blockPos, state.with(Properties.FACING, context.playerFacing.opposite))
+                context.world.setBlockState(context.blockPos, state.with(Properties.HORIZONTAL_FACING, context.playerFacing.opposite))
             return ActionResult.SUCCESS
         }
         return super.useOnBlock(context)

@@ -21,7 +21,7 @@ class InterfaceBlockEntity(block: Block): AttachmentBlockEntity(block), SidedInv
     override fun size() = blueprintInv.size
 
     override fun getAvailableSlots(side: Direction?): IntArray {
-        return intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 9)
+        return intArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8)
     }
 
     override fun isEmpty(): Boolean {
