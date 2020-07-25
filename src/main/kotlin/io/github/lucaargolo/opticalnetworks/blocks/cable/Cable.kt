@@ -5,6 +5,7 @@ import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectable
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.minecraft.block.*
 import net.minecraft.item.ItemPlacementContext
+import net.minecraft.sound.BlockSoundGroup
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
@@ -14,7 +15,7 @@ import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 import net.minecraft.world.WorldAccess
 
-open class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS)) {
+open class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS).strength(0.3F).requiresTool().sounds(BlockSoundGroup.GLASS).nonOpaque()) {
 
     override val bandwidthUsage = 0.0
     override val energyUsage = 0.0

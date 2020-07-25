@@ -6,9 +6,11 @@ import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.minecraft.block.BlockState
 import net.minecraft.block.Material
+import net.minecraft.block.MaterialColor
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.sound.BlockSoundGroup
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
 import net.minecraft.util.ItemScatterer
@@ -17,7 +19,7 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
-class Assembler: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL).nonOpaque()) {
+class Assembler: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL, MaterialColor.IRON).requiresTool().strength(5.0F, 6.0F).sounds(BlockSoundGroup.GLASS).nonOpaque()) {
 
     override val bandwidthUsage = 50.0
     override val energyUsage = 32.0

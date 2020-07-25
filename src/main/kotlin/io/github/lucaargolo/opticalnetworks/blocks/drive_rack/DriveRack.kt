@@ -1,6 +1,5 @@
 package io.github.lucaargolo.opticalnetworks.blocks.drive_rack
 
-import io.github.lucaargolo.opticalnetworks.blocks.assembler.AssemblerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
 import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectableWithEntity
 import net.fabricmc.fabric.api.`object`.builder.v1.block.FabricBlockSettings
@@ -9,10 +8,12 @@ import net.fabricmc.fabric.api.container.ContainerProviderRegistry
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.Material
+import net.minecraft.block.MaterialColor
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemPlacementContext
 import net.minecraft.server.network.ServerPlayerEntity
+import net.minecraft.sound.BlockSoundGroup
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.Properties
 import net.minecraft.util.ActionResult
@@ -24,7 +25,7 @@ import net.minecraft.util.math.Direction
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
 
-class DriveRack: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL)) {
+class DriveRack: NetworkConnectableWithEntity(FabricBlockSettings.of(Material.METAL, MaterialColor.IRON).requiresTool().strength(5.0F, 6.0F).sounds(BlockSoundGroup.METAL)) {
 
     override val bandwidthUsage = 10.0
     override val energyUsage = 16.0
