@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#C#",
+    "GAG",
+    "#D#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "C": {
+      "item": "opticalnetworks:construction_component"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "A": {
+      "item": "opticalnetworks:advanced_microchip"
+    },
+    "D": {
+      "item": "opticalnetworks:destruction_component"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:assembler",
+    "count": 1
+  }
+}

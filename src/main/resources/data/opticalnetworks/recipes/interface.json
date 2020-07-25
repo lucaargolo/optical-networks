@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#I#",
+    "OCO",
+    "#E#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "O": {
+      "item": "opticalnetworks:advanced_microchip"
+    },
+    "I": {
+      "item": "opticalnetworks:importer"
+    },
+    "E": {
+      "item": "opticalnetworks:exporter"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:interface",
+    "count": 1
+  }
+}

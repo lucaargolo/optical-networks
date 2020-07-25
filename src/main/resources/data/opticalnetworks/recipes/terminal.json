@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#S#",
+    "CAD",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "opticalnetworks:screen_component"
+    },
+    "C": {
+      "item": "opticalnetworks:construction_component"
+    },
+    "A": {
+      "item": "opticalnetworks:advanced_microchip"
+    },
+    "D": {
+      "item": "opticalnetworks:destruction_component"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:terminal",
+    "count": 1
+  }
+}

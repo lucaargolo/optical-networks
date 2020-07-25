@@ -1,5 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
+import io.github.lucaargolo.opticalnetworks.blocks.assembler.AssemblerBlockEntity
 import io.github.lucaargolo.opticalnetworks.blocks.getBlockId
 import io.github.lucaargolo.opticalnetworks.network.Network
 import io.github.lucaargolo.opticalnetworks.network.blocks.NetworkConnectableWithEntity
@@ -13,6 +14,7 @@ import net.minecraft.block.BlockState
 import net.minecraft.block.Material
 import net.minecraft.block.entity.BlockEntity
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemPlacementContext
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.server.network.ServerPlayerEntity
@@ -23,6 +25,7 @@ import net.minecraft.text.LiteralText
 import net.minecraft.util.ActionResult
 import net.minecraft.util.Hand
 import net.minecraft.util.Identifier
+import net.minecraft.util.ItemScatterer
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
@@ -68,6 +71,15 @@ open class Terminal: NetworkConnectableWithEntity(FabricBlockSettings.of(Materia
 
         }
         return ActionResult.SUCCESS
+    }
+
+    override fun onStateReplaced(state: BlockState, world: World, pos: BlockPos, newState: BlockState, notify: Boolean) {
+        if (!state.isOf(newState.block)) {
+            (world.getBlockEntity(pos) as? Inventory)?.let {
+                ItemScatterer.spawn(world, pos, it)
+            }
+            super.onStateReplaced(state, world, pos, newState, notify)
+        }
     }
 
     override fun createBlockEntity(world: BlockView?): BlockEntity? {

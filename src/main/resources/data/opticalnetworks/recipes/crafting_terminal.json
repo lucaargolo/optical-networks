@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "opticalnetworks:terminal"
+    },
+    {
+      "item": "opticalnetworks:advanced_microchip"
+    },
+    {
+      "item": "minecraft:crafting_table"
+    }
+  ],
+  "result": {
+    "item": "opticalnetworks:crafting_terminal",
+    "count": 1
+  }
+}

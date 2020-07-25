@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "#S#",
+    "OOO",
+    "#C#"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "opticalnetworks:screen_component"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "O": {
+      "item": "opticalnetworks:advanced_microchip"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:crafting_computer",
+    "count": 1
+  }
+}

@@ -15,7 +15,7 @@ import net.minecraft.util.math.Direction
 class DriveRackBlockEntity(block: Block): NetworkBlockEntity(block), SidedInventory {
 
     var inventory: DefaultedList<ItemStack> = DefaultedList.ofSize(10, ItemStack.EMPTY)
-    var priority = 0;
+    var priority = 0
 
     override fun size() = inventory.size
 
