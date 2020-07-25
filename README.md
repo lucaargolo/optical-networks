@@ -12,8 +12,8 @@
 <p align="center">
   <a href="https://github.com/lucaargolo/optical-networks/actions"><img src="https://github.com/lucaargolo/optical-networks/workflows/Build/badge.svg"/></a>
   <a href="https://opensource.org/licenses/MPL-2.0"><img src="https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg"></a>
-    <a href="https://www.curseforge.com/minecraft/mc-mods/kibe"><img src="http://cf.way2muchnoise.eu/versions/optical-networks_latest.svg"></a>
-  <a href="https://www.curseforge.com/minecraft/mc-mods/kibe"><img src="http://cf.way2muchnoise.eu/optical-networks.svg"></a>
+    <a href="https://www.curseforge.com/minecraft/mc-mods/optical-networks"><img src="http://cf.way2muchnoise.eu/versions/optical-networks_latest.svg"></a>
+  <a href="https://www.curseforge.com/minecraft/mc-mods/optical-networks"><img src="http://cf.way2muchnoise.eu/optical-networks.svg"></a>
 </p>
 
 ## Features
