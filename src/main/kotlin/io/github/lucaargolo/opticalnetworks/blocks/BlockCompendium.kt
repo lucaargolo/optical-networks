@@ -1,5 +1,6 @@
 package io.github.lucaargolo.opticalnetworks.blocks
 
+import io.github.lucaargolo.opticalnetworks.CLIENT
 import io.github.lucaargolo.opticalnetworks.MOD_ID
 import io.github.lucaargolo.opticalnetworks.blocks.`interface`.Interface
 import io.github.lucaargolo.opticalnetworks.blocks.`interface`.InterfaceBlockEntity
@@ -40,20 +41,53 @@ import java.util.*
 
 val blockRegistry = mutableMapOf<Identifier, ModBlock>()
 
-val CONTROLLER = register(Identifier(MOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller(), ControllerScreenHandler::class, ControllerScreen::class))
+val CONTROLLER = if(CLIENT)
+        register(Identifier(MOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller(), null, ControllerScreenHandler::class, ControllerScreen::class))
+    else
+        register(Identifier(MOD_ID, "controller"), ModBlockWithEntity<ControllerBlockEntity>(Controller(), null, ControllerScreenHandler::class, null))
 
-val TERMINAL = register(Identifier(MOD_ID, "terminal"), ModBlockWithEntity<BlockEntity>(Terminal(), TerminalScreenHandler::class, TerminalScreen::class))
-val CRAFTING_TERMINAL = register(Identifier(MOD_ID, "crafting_terminal"), ModBlockWithEntity<CraftingTerminalBlockEntity>(Terminal.Crafting(), CraftingTerminalScreenHandler::class, CraftingTerminalScreen::class))
-val BLUEPRINT_TERMINAL = register(Identifier(MOD_ID, "blueprint_terminal"), ModBlockWithEntity<BlueprintTerminalBlockEntity>(Terminal.Blueprint()))
+val TERMINAL = if(CLIENT)
+        register(Identifier(MOD_ID, "terminal"), ModBlockWithEntity<BlockEntity>(Terminal(), null, TerminalScreenHandler::class, TerminalScreen::class))
+    else
+        register(Identifier(MOD_ID, "terminal"), ModBlockWithEntity<BlockEntity>(Terminal(), null, TerminalScreenHandler::class, null))
 
-val DRIVE_RACK = register(Identifier(MOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), DriveRackBlockEntityRenderer::class, DriveRackScreenHandler::class, DriveRackScreen::class))
-val CRAFTING_COMPUTER = register(Identifier(MOD_ID, "crafting_computer"), ModBlockWithEntity<CraftingComputerBlockEntity>(CraftingComputer(), CraftingComputerBlockEntityRenderer::class, CraftingComputerScreenHandler::class, CraftingComputerScreen::class))
-val INTERFACE = register(Identifier(MOD_ID, "interface"), ModBlockWithEntity<InterfaceBlockEntity>(Interface(), InterfaceScreenHandler::class, InterfaceScreen::class))
-val ASSEMBLER = register(Identifier(MOD_ID, "assembler"), ModBlockWithEntity<AssemblerBlockEntity>(Assembler(), AssemblerScreenHandler::class, AssemblerScreen::class))
+val CRAFTING_TERMINAL = if(CLIENT)
+        register(Identifier(MOD_ID, "crafting_terminal"), ModBlockWithEntity<CraftingTerminalBlockEntity>(Terminal.Crafting(), null, CraftingTerminalScreenHandler::class, CraftingTerminalScreen::class))
+    else
+        register(Identifier(MOD_ID, "crafting_terminal"), ModBlockWithEntity<CraftingTerminalBlockEntity>(Terminal.Crafting(), null, CraftingTerminalScreenHandler::class, null))
+
+val BLUEPRINT_TERMINAL = register(Identifier(MOD_ID, "blueprint_terminal"), ModBlockWithEntity<BlueprintTerminalBlockEntity>(Terminal.Blueprint(), null, null, null))
+
+val DRIVE_RACK = if(CLIENT)
+        register(Identifier(MOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), DriveRackBlockEntityRenderer::class, DriveRackScreenHandler::class, DriveRackScreen::class))
+    else
+        register(Identifier(MOD_ID, "drive_rack"), ModBlockWithEntity<DriveRackBlockEntity>(DriveRack(), null, DriveRackScreenHandler::class, null))
+
+val CRAFTING_COMPUTER = if(CLIENT)
+        register(Identifier(MOD_ID, "crafting_computer"), ModBlockWithEntity<CraftingComputerBlockEntity>(CraftingComputer(), CraftingComputerBlockEntityRenderer::class, CraftingComputerScreenHandler::class, CraftingComputerScreen::class))
+    else
+        register(Identifier(MOD_ID, "crafting_computer"), ModBlockWithEntity<CraftingComputerBlockEntity>(CraftingComputer(), null, CraftingComputerScreenHandler::class, null))
+val INTERFACE = if(CLIENT)
+        register(Identifier(MOD_ID, "interface"), ModBlockWithEntity<InterfaceBlockEntity>(Interface(), null, InterfaceScreenHandler::class, InterfaceScreen::class))
+    else
+        register(Identifier(MOD_ID, "interface"), ModBlockWithEntity<InterfaceBlockEntity>(Interface(), null, InterfaceScreenHandler::class, null))
+
+val ASSEMBLER = if(CLIENT)
+        register(Identifier(MOD_ID, "assembler"), ModBlockWithEntity<AssemblerBlockEntity>(Assembler(), null, AssemblerScreenHandler::class, AssemblerScreen::class))
+    else
+        register(Identifier(MOD_ID, "assembler"), ModBlockWithEntity<AssemblerBlockEntity>(Assembler(), null, AssemblerScreenHandler::class, null))
 
 val CABLE = register(Identifier(MOD_ID, "cable"), ModBlock(Cable()))
-val EXPORTER = register(Identifier(MOD_ID, "exporter"), ModBlockWithEntity<ExporterBlockEntity>(Exporter(), AttachmentScreenHandler::class, AttachmentScreen::class))
-val IMPORTER = register(Identifier(MOD_ID, "importer"), ModBlockWithEntity<ImporterBlockEntity>(Importer(), AttachmentScreenHandler::class, AttachmentScreen::class))
+val EXPORTER = if(CLIENT)
+        register(Identifier(MOD_ID, "exporter"), ModBlockWithEntity<ExporterBlockEntity>(Exporter(), null, AttachmentScreenHandler::class, AttachmentScreen::class))
+    else
+        register(Identifier(MOD_ID, "exporter"), ModBlockWithEntity<ExporterBlockEntity>(Exporter(), null, AttachmentScreenHandler::class, null))
+
+val IMPORTER = if(CLIENT)
+        register(Identifier(MOD_ID, "importer"), ModBlockWithEntity<ImporterBlockEntity>(Importer(), null, AttachmentScreenHandler::class, AttachmentScreen::class))
+    else
+        register(Identifier(MOD_ID, "importer"), ModBlockWithEntity<ImporterBlockEntity>(Importer(), null, AttachmentScreenHandler::class, null))
+
 val STORAGE_BUS = register(Identifier(MOD_ID, "storage_bus"), ModBlock(StorageBus()))
 
 val BANANA = register(Identifier(MOD_ID, "banana"), ModBlock(Banana(), false))

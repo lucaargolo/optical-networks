@@ -3,9 +3,7 @@ package io.github.lucaargolo.opticalnetworks.blocks
 import io.github.lucaargolo.opticalnetworks.CREATIVE_TAB
 import io.github.lucaargolo.opticalnetworks.utils.ModBlockItem
 import net.minecraft.block.Block
-import net.minecraft.item.BlockItem
 import net.minecraft.item.Item
-import net.minecraft.item.ItemGroup
 import net.minecraft.util.Identifier
 import net.minecraft.util.registry.Registry
 

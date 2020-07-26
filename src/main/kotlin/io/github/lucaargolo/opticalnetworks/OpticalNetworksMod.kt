@@ -13,11 +13,13 @@ import io.github.lucaargolo.opticalnetworks.items.initItemsClient
 import io.github.lucaargolo.opticalnetworks.network.NetworkState
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPackets
 import io.github.lucaargolo.opticalnetworks.packets.initNetworkPacketsClient
+import net.fabricmc.api.EnvType
 import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder
 import net.fabricmc.fabric.api.client.model.ModelLoadingRegistry
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider
 import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry
+import net.fabricmc.loader.launch.common.FabricLauncherBase
 import net.minecraft.client.render.model.ModelBakeSettings
 import net.minecraft.client.render.model.ModelLoader
 import net.minecraft.client.render.model.UnbakedModel
@@ -37,6 +39,7 @@ import java.util.function.Function
 
 const val MOD_ID = "opticalnetworks"
 val CREATIVE_TAB: ItemGroup = FabricItemGroupBuilder.create(Identifier(MOD_ID, "creative_tab")).icon { ItemStack(CONTROLLER) }.build()
+val CLIENT = FabricLauncherBase.getLauncher().environmentType == EnvType.CLIENT
 
 fun init() {
     initBlocks()
