@@ -1,0 +1,19 @@
+{
+  "multipart": [
+
+    {"when": {"north": "false"}, "apply": { "model": "opticalnetworks:block/red_cable_face"}},
+    {"when": {"south": "false"}, "apply": { "model": "opticalnetworks:block/red_cable_face", "y": 180}},
+    {"when": {"east" : "false"}, "apply": { "model": "opticalnetworks:block/red_cable_face", "y": 90}},
+    {"when": {"west" : "false"}, "apply": { "model": "opticalnetworks:block/red_cable_face", "y": 270}},
+    {"when": {"up"   : "false"}, "apply": { "model": "opticalnetworks:block/red_cable_face", "x": -90}},
+    {"when": {"down" : "false"}, "apply": { "model": "opticalnetworks:block/red_cable_face", "x": 90}},
+
+    {"when": {"north": "true"}, "apply": { "model": "opticalnetworks:block/red_cable_connection"}},
+    {"when": {"south": "true"}, "apply": { "model": "opticalnetworks:block/red_cable_connection", "y": 180}},
+    {"when": {"east" : "true"}, "apply": { "model": "opticalnetworks:block/red_cable_connection", "y": 90}},
+    {"when": {"west" : "true"}, "apply": { "model": "opticalnetworks:block/red_cable_connection", "y": 270}},
+    {"when": {"up"   : "true"}, "apply": { "model": "opticalnetworks:block/red_cable_connection", "x": -90}},
+    {"when": {"down" : "true"}, "apply": { "model": "opticalnetworks:block/red_cable_connection", "x": 90}}
+
+  ]
+}

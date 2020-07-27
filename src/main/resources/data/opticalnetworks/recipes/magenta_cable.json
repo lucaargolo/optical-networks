@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+	"###",
+    "#O#",
+	"###"
+  ],
+  "key": {
+    "O": {
+      "item": "minecraft:magenta_dye"
+    },
+    "#": {
+      "tag": "opticalnetworks:cables"
+    }
+  },
+  "result": {
+    "item": "opticalnetworks:magenta_cable",
+    "count": 8
+  }
+}

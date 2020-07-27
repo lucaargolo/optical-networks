@@ -1,0 +1,7 @@
+{
+	"parent": "opticalnetworks:block/cable_face",
+	"textures": {
+		"0": "opticalnetworks:block/gray_cable",
+		"particle": "opticalnetworks:block/gray_cable"
+	}
+}

@@ -146,8 +146,8 @@ abstract class BlueprintTerminalScreen(handler: BlueprintTerminalScreenHandler, 
             if(it == changeMode) {
                 if(it.isHovered) {
                     val tooltip = mutableListOf<Text>()
-                    tooltip.add(LiteralText("tooltip.opticalnetworks.$name"))
-                    tooltip.add(TranslatableText("tooltip.opticalnetworks.change_to").append(LiteralText("tooltip.opticalnetworks.$oppositeName")))
+                    tooltip.add(TranslatableText("tooltip.opticalnetworks.$name"))
+                    tooltip.add(TranslatableText("tooltip.opticalnetworks.change_to").append(TranslatableText("tooltip.opticalnetworks.$oppositeName")))
                     renderTooltip(matrices, tooltip, mouseX, mouseY)
                 }
             }

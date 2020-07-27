@@ -1,0 +1,7 @@
+{
+	"parent": "opticalnetworks:item/cable",
+	"textures": {
+		"0": "opticalnetworks:block/red_cable",
+		"particle": "opticalnetworks:block/red_cable"
+	}
+}

@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "opticalnetworks:cable",
+	"opticalnetworks:white_cable",
+    "opticalnetworks:orange_cable",
+    "opticalnetworks:magenta_cable",
+    "opticalnetworks:light_blue_cable",
+    "opticalnetworks:yellow_cable",
+    "opticalnetworks:pink_cable",
+    "opticalnetworks:lime_cable",
+    "opticalnetworks:gray_cable",
+    "opticalnetworks:light_gray_cable",
+    "opticalnetworks:cyan_cable",
+    "opticalnetworks:blue_cable",
+    "opticalnetworks:purple_cable",
+    "opticalnetworks:green_cable",
+    "opticalnetworks:brown_cable",
+    "opticalnetworks:red_cable",
+    "opticalnetworks:black_cable"
+  ]
+}

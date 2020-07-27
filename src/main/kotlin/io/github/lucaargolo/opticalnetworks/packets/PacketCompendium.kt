@@ -271,10 +271,11 @@ fun initNetworkPackets() {
                 screenHandler.entity.markDirty()
                 screenHandler.entity.sync()
                 val newIdentifier = Identifier(identifier.namespace, identifier.path+"_processing")
-                val tag = screenHandler.entity.currentNetwork!!.toTag(CompoundTag())
+                val tag = screenHandler.entity.currentNetwork!!.getOptimizedStateTag(CompoundTag())
                 ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, packetContext.player as ServerPlayerEntity?) { buf ->
                     buf.writeBlockPos(screenHandler.entity.pos)
                     buf.writeCompoundTag(tag)
+                    buf.writeUuid(screenHandler.entity.currentNetwork!!.id)
                 }
             }
         }

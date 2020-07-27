@@ -8,6 +8,7 @@ import net.minecraft.item.ItemPlacementContext
 import net.minecraft.sound.BlockSoundGroup
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.Properties
+import net.minecraft.util.DyeColor
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.shape.VoxelShape
@@ -15,7 +16,7 @@ import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 import net.minecraft.world.WorldAccess
 
-open class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS).strength(0.3F).requiresTool().sounds(BlockSoundGroup.GLASS).nonOpaque()) {
+open class Cable(val dyeColor: DyeColor? = null): NetworkConnectable(FabricBlockSettings.of(Material.GLASS).strength(0.3F).requiresTool().sounds(BlockSoundGroup.GLASS).nonOpaque()) {
 
     override val bandwidthUsage = 0.0
     override val energyUsage = 0.0
@@ -42,22 +43,22 @@ open class Cable: NetworkConnectable(FabricBlockSettings.of(Material.GLASS).stre
 
     override fun getPlacementState(ctx: ItemPlacementContext): BlockState {
         return defaultState
-            .with(ConnectingBlock.NORTH, ctx.world.getBlockState(ctx.blockPos.north()).block is CableConnectable)
-            .with(ConnectingBlock.SOUTH, ctx.world.getBlockState(ctx.blockPos.south()).block is CableConnectable)
-            .with(ConnectingBlock.EAST, ctx.world.getBlockState(ctx.blockPos.east()).block is CableConnectable)
-            .with(ConnectingBlock.WEST, ctx.world.getBlockState(ctx.blockPos.west()).block is CableConnectable)
-            .with(ConnectingBlock.UP, ctx.world.getBlockState(ctx.blockPos.up()).block is CableConnectable)
-            .with(ConnectingBlock.DOWN, ctx.world.getBlockState(ctx.blockPos.down()).block is CableConnectable)
+            .with(ConnectingBlock.NORTH, ctx.world.getBlockState(ctx.blockPos.north()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.SOUTH, ctx.world.getBlockState(ctx.blockPos.south()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.EAST, ctx.world.getBlockState(ctx.blockPos.east()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.WEST, ctx.world.getBlockState(ctx.blockPos.west()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.UP, ctx.world.getBlockState(ctx.blockPos.up()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.DOWN, ctx.world.getBlockState(ctx.blockPos.down()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
     }
 
     override fun getStateForNeighborUpdate(state: BlockState, facing: Direction, neighborState: BlockState, world: WorldAccess, pos: BlockPos, neighborPos: BlockPos): BlockState {
         return state
-            .with(ConnectingBlock.NORTH, world.getBlockState(pos.north()).block is CableConnectable)
-            .with(ConnectingBlock.SOUTH, world.getBlockState(pos.south()).block is CableConnectable)
-            .with(ConnectingBlock.EAST, world.getBlockState(pos.east()).block is CableConnectable)
-            .with(ConnectingBlock.WEST, world.getBlockState(pos.west()).block is CableConnectable)
-            .with(ConnectingBlock.UP, world.getBlockState(pos.up()).block is CableConnectable)
-            .with(ConnectingBlock.DOWN, world.getBlockState(pos.down()).block is CableConnectable)
+            .with(ConnectingBlock.NORTH, world.getBlockState(pos.north()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.SOUTH, world.getBlockState(pos.south()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.EAST, world.getBlockState(pos.east()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.WEST, world.getBlockState(pos.west()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.UP, world.getBlockState(pos.up()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
+            .with(ConnectingBlock.DOWN, world.getBlockState(pos.down()).block.let { if(this.dyeColor != null && it is Cable && it.dyeColor != null) it == this else it is CableConnectable})
     }
 
     override fun getCollisionShape(state: BlockState, world: BlockView, pos: BlockPos, context: ShapeContext): VoxelShape {
