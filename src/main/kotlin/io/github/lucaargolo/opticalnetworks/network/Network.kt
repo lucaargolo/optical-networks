@@ -252,6 +252,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
     }
 
     fun getAvailableCraftables(search: String): MutableList<ItemStack> {
+        if(!this.isValid()) return mutableListOf()
         if(type == Type.COMPONENTS) {
             return getControllerNetwork()?.getAvailableCraftables(search) ?: mutableListOf()
         }else{
@@ -351,6 +352,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
     }
 
     fun getAvailableStacks(search: String): MutableList<ItemStack> {
+        if(!this.isValid()) return mutableListOf()
         if(type == Type.COMPONENTS) {
             return getControllerNetwork()?.getAvailableStacks(search) ?: mutableListOf()
         }else {

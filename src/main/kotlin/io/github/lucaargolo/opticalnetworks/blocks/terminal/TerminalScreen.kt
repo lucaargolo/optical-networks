@@ -55,7 +55,6 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
     protected var bWidth = 0
     protected var bHeight = 0
 
-    private var hoverTerminalSlot: TerminalSlot? = null
     var hdl = handler as Terminal.IScreenHandler
 
     override fun tick() {
@@ -179,16 +178,6 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
 
         scrollButton?.isPressed = this.isScrolling
         scrollButton?.y = scrollOffset
-
-        hoverTerminalSlot = null
-        hdl.terminalSlots.forEach { slot: TerminalSlot ->
-            val i = slot.x + x - 1
-            val j = slot.y + y - 1
-            if(!hdl.network.isValid()) DrawableHelper.fill(matrices, x+slot.x, y+slot.y, x+slot.x+16, y+slot.y+16, 0x60666666)
-            else if(mouseX in (i..i+18) && mouseY in (j..j+18)) hoverTerminalSlot = slot
-            slot.item = ItemStack.EMPTY
-            slot.count = 0
-        }
 
         val stacksAndCraftablesMap = mutableMapOf<ItemStack, Boolean>()
 

@@ -1,10 +1,12 @@
 package io.github.lucaargolo.opticalnetworks.utils
 
 import com.mojang.blaze3d.systems.RenderSystem
+import io.github.lucaargolo.opticalnetworks.blocks.terminal.Terminal
 import io.github.lucaargolo.opticalnetworks.packets.GHOST_SLOT_CLICK_C2S_PACKET
 import io.github.lucaargolo.opticalnetworks.utils.widgets.EnumButtonWidget
 import io.github.lucaargolo.opticalnetworks.utils.widgets.GhostSlot
 import io.github.lucaargolo.opticalnetworks.utils.widgets.PressableWidget
+import io.github.lucaargolo.opticalnetworks.utils.widgets.TerminalSlot
 import io.netty.buffer.Unpooled
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry
 import net.minecraft.client.gui.DrawableHelper
@@ -16,16 +18,19 @@ import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.screen.ScreenHandler
-import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
 import net.minecraft.text.TranslatableText
-import net.minecraft.util.Formatting
 
 open class ModHandledScreen<T: ScreenHandler>(handler: T, inventory: PlayerInventory, title: Text): HandledScreen<T>(handler, inventory, title) {
 
+    var hoverTerminalSlot: TerminalSlot? = null
+
     override fun render(matrices: MatrixStack, mouseX: Int, mouseY: Int, delta: Float) {
         super.render(matrices, mouseX, mouseY, delta)
-        if(this.handler is GhostSlot.IScreenHandler) drawGhostSlots(matrices, mouseX, mouseY, delta)
+        if(this.handler is GhostSlot.IScreenHandler)
+            drawGhostSlots(matrices, mouseX, mouseY, delta)
+        if(this.handler is Terminal.IScreenHandler)
+            drawTerminalSlots(matrices, mouseX, mouseY, delta)
 
         this.buttons.forEach {
             if(it is EnumButtonWidget<*>) {
@@ -40,6 +45,21 @@ open class ModHandledScreen<T: ScreenHandler>(handler: T, inventory: PlayerInven
                     zOffset = aux
                 }
             }
+        }
+    }
+
+    private fun drawTerminalSlots(matrices: MatrixStack?, mouseX: Int, mouseY: Int, delta: Float) {
+        val hdl = this.handler as Terminal.IScreenHandler
+        hoverTerminalSlot = null
+        hdl.terminalSlots.forEach { slot: TerminalSlot ->
+            val i = slot.x + x - 1
+            val j = slot.y + y - 1
+            if(!hdl.network.isValid())
+                DrawableHelper.fill(matrices, x + slot.x, y + slot.y, x + slot.x + 16, y + slot.y + 16, 0xFF666666.toInt())
+            else if(mouseX in (i..i+18) && mouseY in (j..j+18))
+                hoverTerminalSlot = slot
+            slot.item = ItemStack.EMPTY
+            slot.count = 0
         }
     }
 

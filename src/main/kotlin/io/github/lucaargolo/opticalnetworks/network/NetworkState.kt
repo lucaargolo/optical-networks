@@ -178,16 +178,14 @@ class NetworkState(val world: World): PersistentState(MOD_ID) {
         return tag
     }
 
-    override fun fromTag(tag: CompoundTag) {
-        tag.keys.forEach {
-            networks[UUID.fromString(it)] = Network.fromTag(this, world, tag.getCompound(it))
-        }
-    }
+    override fun fromTag(tag: CompoundTag) {}
 
     companion object {
         fun fromTag(world: World, tag: CompoundTag): NetworkState {
             val state = NetworkState(world)
-            state.fromTag(tag)
+            tag.keys.forEach {
+                state.networks[UUID.fromString(it)] = Network.fromTag(state, world, tag.getCompound(it))
+            }
             return state
         }
     }

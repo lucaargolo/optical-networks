@@ -25,7 +25,7 @@ class NetworkAnalyser(settings: Settings): Item(settings) {
                     text.append(LiteralText("${Formatting.BLUE}Network: ${Formatting.GOLD}${network.id.toString().substring(0, 8)}\n"))
                     text.append(LiteralText("${Formatting.BLUE}Type: ${Formatting.GOLD}${network.type.name}\n"))
                     if(network.type == Network.Type.CONTROLLER)
-                        text.append(LiteralText("${Formatting.BLUE}Main Controller: ${Formatting.GOLD}(x: ${network.mainController.x}, y: ${network.mainController.y}, z: ${network.mainController.z}\n"))
+                        text.append(LiteralText("${Formatting.BLUE}Main Controller: ${Formatting.GOLD}(x: ${network.mainController.x}, y: ${network.mainController.y}, z: ${network.mainController.z})\n"))
                     text.append(LiteralText("${Formatting.BLUE}Components: ${Formatting.GOLD}${network.components.size}\n"))
                     text.append(LiteralText("${Formatting.BLUE}Controller Networks: ${Formatting.GOLD}${network.controllerNetworks.size}\n"))
                     network.controllerNetworks.forEach {

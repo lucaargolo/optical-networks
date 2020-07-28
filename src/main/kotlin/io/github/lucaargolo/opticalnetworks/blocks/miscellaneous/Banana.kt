@@ -6,11 +6,12 @@ import net.minecraft.server.world.ServerWorld
 import net.minecraft.sound.BlockSoundGroup
 import net.minecraft.state.StateManager
 import net.minecraft.state.property.Properties
-import net.minecraft.tag.BlockTags
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
 import net.minecraft.util.shape.VoxelShape
 import net.minecraft.world.BlockView
 import net.minecraft.world.World
+import net.minecraft.world.WorldAccess
 import net.minecraft.world.WorldView
 import java.util.*
 
@@ -27,6 +28,10 @@ class Banana: Block(FabricBlockSettings.of(Material.PLANT).ticksRandomly().stren
     override fun appendProperties(builder: StateManager.Builder<Block, BlockState>) {
         builder.add(Properties.AGE_2)
         super.appendProperties(builder)
+    }
+
+    override fun getStateForNeighborUpdate(state: BlockState, direction: Direction, newState: BlockState, world: WorldAccess, pos: BlockPos, posFrom: BlockPos): BlockState {
+        return if(world.getBlockState(pos.up()).isOf(Blocks.JUNGLE_LEAVES)) state else Blocks.AIR.defaultState
     }
 
     override fun hasRandomTicks(state: BlockState): Boolean {
