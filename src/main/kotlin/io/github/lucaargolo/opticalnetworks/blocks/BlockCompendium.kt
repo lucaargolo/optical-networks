@@ -47,6 +47,7 @@ import net.minecraft.item.Item
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.ScreenHandlerContext
+import net.minecraft.state.property.Properties
 import net.minecraft.text.TranslatableText
 import net.minecraft.util.DyeColor
 import net.minecraft.util.Identifier
@@ -228,9 +229,9 @@ fun initBlocksClient() {
             BlockRenderLayerMap.INSTANCE.putBlock(it.key, RenderLayer.getCutout())
         else if(!FabricLoader.getInstance().isModLoaded("json-model-extensions"))
             BlockRenderLayerMap.INSTANCE.putBlock(it.key, RenderLayer.getTranslucent())
-        ColorProviderRegistry.BLOCK.register(BlockColorProvider { _, world, pos, _ ->
+        ColorProviderRegistry.BLOCK.register(BlockColorProvider { state, world, pos, _ ->
             val be = world?.getBlockEntity(pos)
-            if(be is NetworkBlockEntity && be.currentColor != null)
+            if(be is NetworkBlockEntity && be.currentColor != null && state[Properties.ENABLED])
                 be.currentColor!!.rgb
             else 0x666666
         }, it.key)

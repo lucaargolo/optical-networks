@@ -163,7 +163,7 @@ class ControllerScreen(handler: ControllerScreenHandler, inventory: PlayerInvent
         if(be is ControllerBlockEntity) {
             val texts = mutableListOf<Text>()
             texts.add(LiteralText("${Formatting.GOLD}Energy:"))
-            texts.add(LiteralText("${be.networkStoredPowerCache} / ${handler.network.getMaxStoredPower()}"))
+            texts.add(LiteralText("${"%.1f".format(be.networkStoredPowerCache)} / ${handler.network.getMaxStoredPower()}"))
             renderTooltip(matrices, texts, mouseX, mouseY)
         }
     }

@@ -5,10 +5,15 @@ import io.github.lucaargolo.opticalnetworks.mixed.ServerPlayerEntityMixed;
 import io.github.lucaargolo.opticalnetworks.packets.PacketCompendiumKt;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.impl.networking.ServerSidePacketRegistryImpl;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -26,13 +31,7 @@ public class ServerPlayerEntityMixin implements ServerPlayerEntityMixed {
         CompoundTag tcTag = tag.getCompound("opticalnetworks:terminal_config");
         if(tcTag != null) {
             opticalNetworks$terminalConfig.fromTag(tcTag);
-            PacketByteBuf passedData = new PacketByteBuf(Unpooled.buffer());
-            passedData.writeCompoundTag(tcTag);
-            try{
-                ServerSidePacketRegistry.INSTANCE.sendToPlayer((ServerPlayerEntity) ((Object) this), PacketCompendiumKt.getUPDATE_TERMINAL_CONFIG_S2C_PACKET(), passedData);
-            }catch (Exception ignored) {}
         }
-
     }
 
     @Override

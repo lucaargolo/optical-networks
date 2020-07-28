@@ -1,11 +1,13 @@
 package io.github.lucaargolo.opticalnetworks.blocks.terminal
 
 import com.mojang.blaze3d.systems.RenderSystem
+import io.github.lucaargolo.opticalnetworks.mixed.ServerPlayerEntityMixed
 import io.github.lucaargolo.opticalnetworks.mixin.SlotMixin
 import io.github.lucaargolo.opticalnetworks.packets.NETWORK_INTERACT_C2S_PACKET
 import io.github.lucaargolo.opticalnetworks.packets.UPDATE_TERMINAL_CONFIG_C2S_PACKET
 import io.github.lucaargolo.opticalnetworks.packets.terminalConfig
-import io.github.lucaargolo.opticalnetworks.utils.*
+import io.github.lucaargolo.opticalnetworks.utils.ModHandledScreen
+import io.github.lucaargolo.opticalnetworks.utils.areStacksCompatible
 import io.github.lucaargolo.opticalnetworks.utils.autocrafting.RequestCraftScreen
 import io.github.lucaargolo.opticalnetworks.utils.widgets.EnumButtonWidget
 import io.github.lucaargolo.opticalnetworks.utils.widgets.ScrollButtonWidget
@@ -62,7 +64,8 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
 
     private fun updateTerminalConfig() {
         val passedData = PacketByteBuf(Unpooled.buffer())
-        passedData.writeCompoundTag(terminalConfig.toTag(CompoundTag()))
+        val tag = terminalConfig.toTag(CompoundTag())
+        passedData.writeCompoundTag(tag)
         ClientSidePacketRegistry.INSTANCE.sendToServer(UPDATE_TERMINAL_CONFIG_C2S_PACKET, passedData)
     }
 

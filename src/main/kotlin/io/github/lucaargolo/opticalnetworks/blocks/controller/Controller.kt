@@ -34,7 +34,7 @@ import net.minecraft.world.WorldAccess
 class Controller: BlockWithEntity(FabricBlockSettings.of(Material.METAL, MaterialColor.IRON).requiresTool().strength(5.0F, 6.0F).sounds(BlockSoundGroup.METAL)), CableConnectable {
 
     override val bandwidthUsage = 0.0
-    override val energyUsage = 0.0
+    override val energyUsage = 1.0
 
     override fun onPlaced(world: World, pos: BlockPos, state: BlockState, placer: LivingEntity?, itemStack: ItemStack) {
         if(world is ServerWorld) {

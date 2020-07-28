@@ -38,13 +38,12 @@ open class NetworkBlockEntity(val block: Block): BlockEntity(getEntityType(block
                 networkState.updateBlock(world as ServerWorld, pos)
                 currentNetwork = networkState.getNetwork(world as ServerWorld, pos)
             }
-            if(isNetworkInvalid() && block !is Controller) {
-                if(cachedState[Properties.ENABLED]) world!!.setBlockState(pos, cachedState.with(Properties.ENABLED, false))
-                currentColor = null
-                markDirty()
-                sync()
+            if(isNetworkInvalid()) {
+                if(cachedState[Properties.ENABLED])
+                    world!!.setBlockState(pos, cachedState.with(Properties.ENABLED, false))
             }else{
-                if(!cachedState[Properties.ENABLED]) world!!.setBlockState(pos, cachedState.with(Properties.ENABLED, true))
+                if(!cachedState[Properties.ENABLED])
+                    world!!.setBlockState(pos, cachedState.with(Properties.ENABLED, true))
                 currentNetwork!!.storedPower -= (this.block as? CableConnectable)?.energyUsage ?: 0.0
             }
         }

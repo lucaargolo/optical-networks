@@ -42,7 +42,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 
-    //modImplementation "TechReborn:TechReborn-1.16:${project.techreborn_version}"
+    modImplementation "TechReborn:TechReborn-1.16:${project.techreborn_version}"
     modImplementation "io.github.prospector:modmenu:${project.modmenu_version}"
     modImplementation "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
 

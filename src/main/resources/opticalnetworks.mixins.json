@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "BeachBiomeMixin",
+    "PlayerManagerMixin",
     "ServerPlayerEntityMixin",
     "ShapedRecipeMixin",
     "ShapelessRecipeMixin",

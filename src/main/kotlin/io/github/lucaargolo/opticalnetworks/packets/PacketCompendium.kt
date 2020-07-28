@@ -110,8 +110,9 @@ fun initNetworkPackets() {
     }
 
     ServerSidePacketRegistry.INSTANCE.register(UPDATE_TERMINAL_CONFIG_C2S_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+        val tag = attachedData.readCompoundTag()
         packetContext.taskQueue.execute {
-            attachedData.readCompoundTag()?.let {  (packetContext.player as ServerPlayerEntityMixed).`opticalNetworks$terminalConfig`.fromTag(it) }
+            (packetContext.player as ServerPlayerEntityMixed).`opticalNetworks$terminalConfig`.fromTag(tag!!)
         }
     }
 
@@ -161,7 +162,7 @@ fun initNetworkPackets() {
             }
             2 -> {
                 //change controller color
-                val color = attachedData.readString()
+                val color = attachedData.readString(6)
                 packetContext.taskQueue.execute {
                     changeColor(color, player, network)
                 }
@@ -510,8 +511,9 @@ fun initNetworkPacketsClient() {
         }
     }
     ClientSidePacketRegistry.INSTANCE.register(UPDATE_TERMINAL_CONFIG_S2C_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
+        val tag = attachedData.readCompoundTag()
         packetContext.run {
-            attachedData.readCompoundTag()?.let { terminalConfig.fromTag(it) }
+            terminalConfig.fromTag(tag!!)
         }
     }
     ClientSidePacketRegistry.INSTANCE.register(UPDATE_CURSOR_SLOT_S2C_PACKET) { packetContext: PacketContext, attachedData: PacketByteBuf ->
