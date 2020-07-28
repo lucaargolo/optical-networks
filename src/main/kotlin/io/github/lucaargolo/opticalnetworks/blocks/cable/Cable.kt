@@ -16,7 +16,7 @@ import net.minecraft.util.shape.VoxelShapes
 import net.minecraft.world.BlockView
 import net.minecraft.world.WorldAccess
 
-open class Cable(val dyeColor: DyeColor? = null): NetworkConnectable(FabricBlockSettings.of(Material.GLASS).strength(5.0F, 6.0F).requiresTool().sounds(BlockSoundGroup.GLASS).nonOpaque()) {
+open class Cable(val dyeColor: DyeColor? = null): NetworkConnectable(FabricBlockSettings.of(Material.METAL, MaterialColor.CLEAR).strength(2.0F, 6.0F).requiresTool().sounds(BlockSoundGroup.GLASS).nonOpaque()) {
 
     override val bandwidthUsage = 0.0
     override val energyUsage = 0.0
