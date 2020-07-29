@@ -109,7 +109,7 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
         return if(be.craftInventory.isEmpty) true
         else {
             (0 until be.craftInventory.size()).forEach {
-                currentNetwork!!.insertStack(be.getStack(it))
+                currentNetwork!!.insertStack(be.craftInventory.getStack(it))
             }
             return be.craftInventory.isEmpty
         }
