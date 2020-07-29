@@ -185,6 +185,7 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
                         else if (areStacksCompatible(stk, tagRecipe.output) && stk.count+tagRecipe.output.count <= stk.maxCount) inventory[10].increment(tagRecipe.output.count)
                         inventory[10] = currentNetwork!!.insertStack(inventory[10])
                         currentNetwork!!.removeProcessingMachine(pos)
+                        lastInputSlot = 0
                         processingTime = 0
                     }else processingTime++
                 }else processingTime = 0

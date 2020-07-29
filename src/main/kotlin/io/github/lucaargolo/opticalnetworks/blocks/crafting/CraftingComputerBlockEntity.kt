@@ -105,6 +105,16 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
         delayCount++
     }
 
+    private fun emptyAssembler(be: AssemblerBlockEntity): Boolean {
+        return if(be.craftInventory.isEmpty) true
+        else {
+            (0 until be.craftInventory.size()).forEach {
+                currentNetwork!!.insertStack(be.getStack(it))
+            }
+            return be.craftInventory.isEmpty
+        }
+    }
+
     private fun processCrafting(action: CraftingAction, priority: Int) {
         //opa vamos ver se precisa de algum subcrafting, se sim vamos ver se ele ta adicionado na network, se não vamos adicionar nesse computador (mas isso ainda falta alguns checks)
         if(action.necessaryActions.isNotEmpty()) {
@@ -124,10 +134,10 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
             if(action.quantity > 0) {
                 val machine = world!!.getBlockEntity(action.machinePos)
                 if(machine is AssemblerBlockEntity) {
-                    if (!currentNetwork!!.getProcessingMachines().containsKey(action.machinePos)) {
+                    if (!currentNetwork!!.getProcessingMachines().containsKey(action.machinePos) && emptyAssembler(machine)) {
                         action.state = CraftingAction.State.PROCESSING
                         currentNetwork!!.addProcessingMachine(action.machinePos!!, action)
-                        if(tryToCraft(action, machine, Direction.DOWN)) action.quantity--
+                        if (tryToCraft(action, machine, Direction.DOWN)) action.quantity--
                         else currentNetwork!!.removeProcessingMachine(action.machinePos!!)
                     } else action.state = CraftingAction.State.WAITING_MACHINE
                 }
@@ -140,7 +150,7 @@ class CraftingComputerBlockEntity(block: Block): NetworkBlockEntity(block), Side
                             if(!currentNetwork!!.getProcessingMachines().containsKey(it) && world!!.getBlockEntity(it) is AssemblerBlockEntity)
                                 be = world!!.getBlockEntity(it) as AssemblerBlockEntity
                         }
-                        if(be != null) {
+                        if(be != null && emptyAssembler(be!!)) {
                             action.state = CraftingAction.State.PROCESSING
                             currentNetwork!!.addProcessingMachine(be!!.pos, action)
                             //e vamos trocar a blueprint de uma pra outra
