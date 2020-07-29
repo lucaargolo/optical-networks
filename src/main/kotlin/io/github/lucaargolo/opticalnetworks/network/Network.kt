@@ -574,7 +574,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
             if(rackEntity.world?.isClient == false) (rackEntity as BlockEntityClientSerializable).sync()
         }
         if(!ItemStack.areEqual(copyStack, stack)) {
-            val processingItemsIterator = processingItems.iterator()
+            val processingItemsIterator = getProcessingItems().iterator()
             while(processingItemsIterator.hasNext()) {
                 val processingItemsEntry = processingItemsIterator.next()
                 val pendingMachine = processingItemsEntry.value
@@ -591,7 +591,7 @@ class Network private constructor(val state: NetworkState, var world: World, val
                 }
                 if(pendingStacks.isEmpty()) {
                     processingItemsIterator.remove()
-                    processingMachines.remove(pendingMachine)
+                    removeProcessingMachine(pendingMachine)
                 }
             }
         }

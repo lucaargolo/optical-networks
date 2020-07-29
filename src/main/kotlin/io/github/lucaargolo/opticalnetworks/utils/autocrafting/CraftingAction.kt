@@ -30,6 +30,16 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
         WAITING_CPU,
         WAITING_ITEM,
         WAITING_MACHINE,
+        NO_ASSEMBLER,
+        NO_MACHINE_INVENTORY,
+        NO_MACHINE,
+        NO_CRAFTABLE,
+        MACHINE_BEING_USED,
+        MACHINE_FULL,
+        ASSEMBLER_BEING_USED,
+        ASSEMBLER_FULL,
+        INTERFACE_NOT_DIRECTIONAL,
+        FINISHING,
         FINISHED
     }
 
@@ -40,7 +50,7 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
     val missingStacks: MutableList<ItemStack> = mutableListOf()
     //stacks that are available in the system
     val availableStacks: MutableList<ItemStack> = mutableListOf()
-    //all the stacks the system will have to craft to fullfill the requirements (used in request screen & crafting computer)
+    //all the stacks the system will have to craft to fulfill the requirements (used in request screen & crafting computer)
     val craftStacks: MutableList<ItemStack> = mutableListOf()
     //stacks that couldn't be previously inserted in a machine due to it being full (used in crafting computer)
     val failedStacks: MutableList<ItemStack> = mutableListOf()
@@ -49,11 +59,6 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
     //stacks that are going to get crafted
     val outputStacks: MutableList<ItemStack> = mutableListOf()
 
-    var craftableInfo = network.getCraftableInfo(craftStack)
-    var machinePos = craftableInfo?.second
-    var tag = craftableInfo?.first
-    var type: Type = if(tag?.getString("type") == "crafting") Type.CRAFTING else Type.PROCESSING
-    var useNbt: Boolean = tag?.getBoolean("useNbt") ?: false
     var state = State.NOTHING
     var quantity = 0
 
@@ -91,12 +96,6 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
             (tag.get("outputStacks") as ListTag).forEach {
                 action.outputStacks.add(getStackFromTag(it as CompoundTag))
             }
-            val info = Pair(tag.getCompound("craftableInfoTag"), BlockPos.fromLong(tag.getLong("craftableInfoBlockPos")))
-            action.craftableInfo = info
-            action.tag = info.first
-            action.machinePos = info.second
-            action.type = if(tag.getString("type") == "crafting") Type.CRAFTING else Type.PROCESSING
-            action.useNbt = tag.getBoolean("useNbt")
             action.quantity = tag.getInt("quantity")
             action.state = State.values()[tag.getInt("state")]
             return action
@@ -150,21 +149,19 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
             outputStacksListTag.add(getTagFromStack(it))
         }
         tag.put("outputStacks", outputStacksListTag)
-        craftableInfo?.let {
-            tag.put("craftableInfoTag", it.first)
-            tag.putLong("craftableInfoBlockPos", it.second.asLong())
-        }
         return tag
     }
 
     private fun properlyInitialize() {
         state = State.PROCESSING
 
+        val tag = network.getCraftableInfo(craftStack)?.first
+
         // outputssss
         if(tag?.get("output") is CompoundTag)
-            outputStacks.add(ItemStack.fromTag(tag!!.getCompound("output")))
+            outputStacks.add(ItemStack.fromTag(tag.getCompound("output")))
         if(tag?.get("output") is ListTag) {
-            val outputList = tag!!.get("output") as ListTag
+            val outputList = tag.get("output") as ListTag
             outputList.forEach {
                 outputStacks.add(ItemStack.fromTag(it as CompoundTag))
             }
@@ -181,7 +178,7 @@ class CraftingAction private constructor(val network: Network, val stacks: Mutab
         val missingButCraftable = mutableMapOf<ItemStack, Int>()
 
         val listTag = tag?.get("input") as ListTag?
-        listTag?.forEach {tag ->
+        listTag?.forEach { tag ->
             var stack = ItemStack.EMPTY
             if (tag is StringTag) {
                 val helper = IngredientHelper(tag.asString())

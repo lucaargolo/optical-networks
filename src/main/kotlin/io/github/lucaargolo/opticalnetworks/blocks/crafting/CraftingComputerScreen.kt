@@ -125,10 +125,10 @@ class CraftingComputerScreen(handler: CraftingComputerScreenHandler, inventory: 
                     if(mouseX in (x+81)..(x+151) && mouseY in (y+18+(index*18))..(y+34+(index*18))) {
                         val tooltip = mutableListOf<Text>()
                         tooltip.add(LiteralText("${Formatting.GOLD}Crafting"))
-                        tooltip.add(TranslatableText("tooltip.opticalnetworks.quantity").formatted(Formatting.BLUE).append(LiteralText(action.quantity.toString()).formatted(Formatting.GRAY)))
-                        tooltip.add(LiteralText("State: ").formatted(Formatting.BLUE).append(TranslatableText("tooltip.opticalnetworks.enum.state.${action.state.name.toLowerCase()}").formatted(Formatting.GRAY)))
+                        tooltip.add(TranslatableText("tooltip.opticalnetworks.quantity").append(LiteralText(action.quantity.toString()).formatted(Formatting.GRAY)))
+                        tooltip.add(TranslatableText("tooltip.opticalnetworks.enum.state.${action.state.name.toLowerCase()}").formatted(Formatting.GRAY))
                         if(action.missingStacks.isNotEmpty()) {
-                            val missingStacks = LiteralText("Missing: ").formatted(Formatting.BLUE)
+                            val missingStacks = TranslatableText("tooltip.opticalnetworks.missing")
                             val missingStackMap = linkedMapOf<ItemStack, Int>()
                             action.missingStacks.forEachIndexed { idx, stk ->
                                 var found = false

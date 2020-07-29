@@ -29,7 +29,12 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
 
     val craftInventory: CraftingInventory = object: CraftingInventory(null, 3, 3) {
         override fun size() = 9
-        override fun isEmpty() = inventory.subList(1, 9).isEmpty()
+        override fun isEmpty(): Boolean {
+            inventory.subList(1, 9).forEach {
+                if(!it.isEmpty) return false
+            }
+            return true
+        }
         override fun getStack(slot: Int) = inventory[slot+1]
         override fun canPlayerUse(player: PlayerEntity?) = this@AssemblerBlockEntity.canPlayerUse(player)
         override fun clear() = inventory.clear()
@@ -60,8 +65,6 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
         }
 
     }
-
-    var lastInputSlot = 0
 
     companion object {
         const val PROCESSING_GOAL = 0
@@ -167,6 +170,99 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
 
     }
 
+    private fun reorganizeInventory(recipe: CraftingRecipe) {
+        val storedStacks = mutableListOf<ItemStack>()
+        (1..9).forEach { x ->
+            var found = false
+            storedStacks.forEach inner@{
+                if(areStacksCompatible(it, inventory[x])) {
+                    it.increment(inventory[x].count)
+                    found = true
+                    return@inner
+                }
+            }
+            if(!found)
+                storedStacks.add(inventory[x].copy())
+            inventory[x] = ItemStack.EMPTY
+        }
+
+        storedStacks.forEach { storedStack ->
+            val validSlots = mutableListOf<Int>()
+            if(recipe is ShapelessRecipe) {
+                (recipe as ShapelessRecipeMixin).input.forEachIndexed {  x, igd ->
+                    val validStacks = getStringStacks(igd.toJson().toString())
+                    validStacks.forEach { validStack ->
+                        if(areStacksCompatible(storedStack, validStack)) {
+                            validSlots.add(x)
+                        }
+                    }
+                }
+            }else{
+                (recipe as ShapedRecipeMixin).inputs.forEachIndexed { x, igd ->
+                    val validStacks = getStringStacks(igd.toJson().toString())
+                    validStacks.forEach { validStack ->
+                        if(areStacksCompatible(storedStack, validStack)) {
+                            validSlots.add(x)
+                        }
+                    }
+                }
+            }
+            if(validSlots.isNotEmpty()) {
+
+                val cu = storedStack.count / validSlots.size
+                var resto = storedStack.count - (cu*validSlots.size)
+
+                validSlots.forEach inner@{ slot ->
+                    val craftInvStack = craftInventory.getStack(slot)
+
+                    var amount = if(resto > 0) {
+                        resto--
+                        cu+1
+                    }else cu
+
+                    if(amount == 0) return@inner
+                    if(amount > storedStack.maxCount) amount = storedStack.maxCount
+
+                    if(craftInvStack.isEmpty) {
+                        val dummyStack = storedStack.copy()
+                        dummyStack.count = amount
+                        storedStack.decrement(amount)
+                        craftInventory.setStack(slot, dummyStack)
+                    }else{
+                        if(areStacksCompatible(storedStack, craftInvStack)) {
+                            if(craftInvStack.count+amount >= craftInvStack.maxCount) {
+                                craftInvStack.increment(amount)
+                                storedStack.decrement(amount)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        storedStacks.forEach {
+            if(!it.isEmpty) {
+                (1..9).forEach inner@{ x ->
+                    if(inventory[x].isEmpty) {
+                        inventory[x] = it.copy()
+                        return@forEach
+                    }else{
+                        if(areStacksCompatible(it, inventory[x])) {
+                            if(inventory[x].count + it.count <= it.maxCount) {
+                                inventory[x].increment(it.count)
+                                return@forEach
+                            }else{
+                                it.decrement(it.maxCount - inventory[x].count)
+                                inventory[x].count = it.maxCount
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
     override fun tick() {
         super.tick()
         if(world?.isClient == false) {
@@ -175,6 +271,7 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
                 val id = Identifier(inventory[0].tag!!.getString("id"))
                 val tagRecipeOptional = world!!.recipeManager.get(id)
                 val tagRecipe: CraftingRecipe? = if(tagRecipeOptional.isPresent && tagRecipeOptional.get() is CraftingRecipe) tagRecipeOptional.get() as CraftingRecipe else null
+                tagRecipe?.let { reorganizeInventory(it) }
                 val invRecipeOptional = world!!.server!!.recipeManager.getFirstMatch(RecipeType.CRAFTING, craftInventory, world)
                 val invRecipe: CraftingRecipe? = if (invRecipeOptional.isPresent) invRecipeOptional.get() else null
                 if(tagRecipe != null && tagRecipe == invRecipe) {
@@ -185,7 +282,6 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
                         else if (areStacksCompatible(stk, tagRecipe.output) && stk.count+tagRecipe.output.count <= stk.maxCount) inventory[10].increment(tagRecipe.output.count)
                         inventory[10] = currentNetwork!!.insertStack(inventory[10])
                         currentNetwork!!.removeProcessingMachine(pos)
-                        lastInputSlot = 0
                         processingTime = 0
                     }else processingTime++
                 }else processingTime = 0
@@ -283,7 +379,6 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
                         val validStacks = validSlots[slot]!!
                         validStacks.forEach { stk ->
                             if(areStacksCompatible(stk, stack)) {
-                                lastInputSlot = slot
                                 return true
                             }
                         }
@@ -295,48 +390,7 @@ class AssemblerBlockEntity(block: Block): NetworkBlockEntity(block), SidedInvent
     }
 
     override fun getAvailableSlots(side: Direction?): IntArray {
-        if(!isBlueprintValid()) return intArrayOf(0, 10)
-        val id = Identifier(inventory[0].tag!!.getString("id"))
-        val tagRecipeOptional = world!!.recipeManager.get(id)
-        val tagRecipe: CraftingRecipe? = if(tagRecipeOptional.isPresent && tagRecipeOptional.get() is CraftingRecipe) tagRecipeOptional.get() as CraftingRecipe else null
-        var validSlots = mutableListOf<Int>()
-        tagRecipe?.let { recipe ->
-            var ingredients: DefaultedList<Ingredient>? = null
-            var width = 3
-            var height = 3
-            if(recipe is ShapedRecipe) {
-                ingredients = (recipe as ShapedRecipeMixin).inputs
-                width = recipe.width
-                height = recipe.height
-            }
-            if(recipe is ShapelessRecipe)
-                ingredients = (recipe as ShapelessRecipeMixin).input
-            ingredients?.let {
-                ingredients.forEachIndexed { idx, igd ->
-                    val validStacks = getStringStacks(igd.toJson().toString())
-                    if(validStacks.isNotEmpty()) {
-                        if(width < 3 && height < 3) {
-                            val row = (idx+1)/height
-                            val cu = idx+1+(row*(3-width))
-                            validSlots.add(cu)
-                        }else{
-                            validSlots.add(idx+1)
-                        }
-                    }
-                }
-            }
-        }
-
-        var find = validSlots.indexOf(lastInputSlot)
-        if(find+1 > validSlots.size) find = 0
-        val nl = mutableListOf<Int>()
-        nl.addAll(validSlots.subList(find+1, validSlots.size))
-        nl.addAll(validSlots.subList(0, find+1))
-        validSlots = nl
-
-        val finalSlots = mutableListOf(0, 10)
-        finalSlots.addAll(validSlots)
-        return finalSlots.toIntArray()
+        return (0..10).toList().toIntArray()
     }
 
 }

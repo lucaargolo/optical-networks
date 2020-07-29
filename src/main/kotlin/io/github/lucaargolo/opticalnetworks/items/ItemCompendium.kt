@@ -39,10 +39,10 @@ val ITEM_DRIVE_4K = register(Identifier(MOD_ID, "item_drive_4k"), ModItem(ItemDr
 val ITEM_DRIVE_16K = register(Identifier(MOD_ID, "item_drive_16k"), ModItem(ItemDrive(Settings().group(CREATIVE_TAB).maxCount(1), 16364)))
 val ITEM_DRIVE_64K = register(Identifier(MOD_ID, "item_drive_64k"), ModItem(ItemDrive(Settings().group(CREATIVE_TAB).maxCount(1), 65536)))
 
-val CRAFTING_MEMORY_MK1 = register(Identifier(MOD_ID, "crafting_memory_mk1"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 1)))
-val CRAFTING_MEMORY_MK2 = register(Identifier(MOD_ID, "crafting_memory_mk2"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 2)))
-val CRAFTING_MEMORY_MK3 = register(Identifier(MOD_ID, "crafting_memory_mk3"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 3)))
-val CRAFTING_MEMORY_MK4 = register(Identifier(MOD_ID, "crafting_memory_mk4"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 4)))
+val CRAFTING_MEMORY_MK1 = register(Identifier(MOD_ID, "crafting_memory_mk1"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 8)))
+val CRAFTING_MEMORY_MK2 = register(Identifier(MOD_ID, "crafting_memory_mk2"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 16)))
+val CRAFTING_MEMORY_MK3 = register(Identifier(MOD_ID, "crafting_memory_mk3"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 32)))
+val CRAFTING_MEMORY_MK4 = register(Identifier(MOD_ID, "crafting_memory_mk4"), ModItem(CraftingMemory(Settings().group(CREATIVE_TAB).maxCount(1), 64)))
 
 val AND_CPU_MK1 = register(Identifier(MOD_ID, "and_cpu_mk1"), ModItem(CraftingProcessingUnit(Settings().group(CREATIVE_TAB).maxCount(1), 2, 0.25F)))
 val AND_CPU_MK2 = register(Identifier(MOD_ID, "and_cpu_mk2"), ModItem(CraftingProcessingUnit(Settings().group(CREATIVE_TAB).maxCount(1), 2, 0.5F)))
