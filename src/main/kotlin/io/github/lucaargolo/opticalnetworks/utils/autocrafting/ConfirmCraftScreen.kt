@@ -13,6 +13,7 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.PacketByteBuf
 import net.minecraft.text.LiteralText
 import net.minecraft.text.Text
@@ -223,13 +224,18 @@ class ConfirmCraftScreen(val terminal: TerminalScreen, val action: CraftingActio
             }
         }
 
-        this.itemRenderer.renderInGuiWithOverrides(this.client!!.player, action.outputStacks[0], x+11, y+120)
-        textRenderer.draw(matrices, TranslatableText(action.outputStacks[0].translationKey), x+35f, y+119f, 4210752)
-        textRenderer.draw(matrices, LiteralText("To craft: ${action.outputStacks[0].count*action.quantity}"), x+35f, y+129f, 4210752)
+        if(action.outputStacks.size > 0) {
+            this.itemRenderer.renderInGuiWithOverrides(this.client!!.player, action.outputStacks[0], x + 11, y + 120)
+            textRenderer.draw(matrices, TranslatableText(action.outputStacks[0].translationKey), x + 35f, y + 119f, 4210752)
+            textRenderer.draw(matrices, LiteralText("To craft: ${action.outputStacks[0].count * action.quantity}"), x + 35f, y + 129f, 4210752)
 
-        if(mouseX in (x+11..x+27) && mouseY in (y+120..y+136)) {
-            DrawableHelper.fill(matrices, x+11, y+120, x+27, y+136, -2130706433)
-            renderTooltip(matrices, action.outputStacks[0], mouseX, mouseY)
+            if(mouseX in (x+11..x+27) && mouseY in (y+120..y+136)) {
+                DrawableHelper.fill(matrices, x+11, y+120, x+27, y+136, -2130706433)
+                renderTooltip(matrices, action.outputStacks[0], mouseX, mouseY)
+            }
+        }else{
+            craftButton?.active = false
+            failedCraftReason = TranslatableText("tooltip.opticalnetworks.missing_output")
         }
 
         if(craftButton != null && !craftButton!!.active && craftButton!!.isHovered) {

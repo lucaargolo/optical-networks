@@ -326,7 +326,7 @@ open class TerminalScreen(handler: ScreenHandler, inventory: PlayerInventory, ti
         if(hoverTerminalSlot == slot) {
             DrawableHelper.fill(matrices, i, j, i + 16, j + 16, -2130706433)
             if(playerInventory.cursorStack.isEmpty) {
-                val tooltip = getTooltipFromItem(slot.item)
+                val tooltip = getTooltipFromItem(slot.item.copy())
                 if(slot.count != -1) tooltip.add(1, LiteralText("${Formatting.GRAY}Stored: ${slot.count}"))
                 renderTooltip(matrices, tooltip, mouseX, mouseY)
             }

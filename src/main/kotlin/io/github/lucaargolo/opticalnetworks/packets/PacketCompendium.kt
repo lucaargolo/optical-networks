@@ -287,7 +287,7 @@ fun initNetworkPackets() {
                 screenHandler.entity.markDirty()
                 screenHandler.entity.sync()
                 val newIdentifier = Identifier(identifier.namespace, identifier.path+"_crafting")
-                val tag = screenHandler.entity.currentNetwork!!.toTag(CompoundTag())
+                val tag = screenHandler.entity.currentNetwork!!.getOptimizedStateTag(CompoundTag())
                 ContainerProviderRegistry.INSTANCE.openContainer(newIdentifier, packetContext.player as ServerPlayerEntity?) { buf ->
                     buf.writeBlockPos(screenHandler.entity.pos)
                     buf.writeCompoundTag(tag)
@@ -449,10 +449,19 @@ private fun changeColor(string: String, player: PlayerEntity, network: Network) 
 private fun executeMouseClicker(stack: ItemStack, playerInventory: PlayerInventory, shift: Boolean, network: Network, button: Int) {
     if (shift) {
         val copyStack = stack.copy()
-        playerInventory.insertStack(stack)
-        if(!stack.isEmpty) copyStack.decrement(stack.count)
+        val originalCount = copyStack.count
         network.removeStack(copyStack)
-        if(!copyStack.isEmpty) playerInventory.main.remove(copyStack)
+        if(copyStack.isEmpty) {
+            playerInventory.insertStack(stack)
+            if(!stack.isEmpty)
+                network.insertStack(stack)
+        }else{
+            if(copyStack.count < originalCount) {
+                val failedStack = copyStack.copy()
+                failedStack.count = originalCount-copyStack.count
+                network.insertStack(failedStack)
+            }
+        }
     }else{
         if (button == 0) {
             if (playerInventory.cursorStack.isEmpty) {

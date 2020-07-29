@@ -12,11 +12,12 @@ import net.minecraft.world.World
 class ItemDrive(settings: Settings, val space: Int): Item(settings) {
 
     override fun appendTooltip(stack: ItemStack, world: World?, tooltip: MutableList<Text>, context: TooltipContext) {
-        val tag = stack.orCreateTag;
-        var used = 0;
-        if(tag.contains("items")) {
-            (tag.get("items") as ListTag).forEach {
-                used += (it as CompoundTag).getInt("Count")
+        var used = 0
+        stack.tag?.let { tag ->
+            if(tag.contains("items")) {
+                (tag.get("items") as ListTag).forEach {
+                    used += (it as CompoundTag).getInt("Count")
+                }
             }
         }
         tooltip.add(LiteralText("Space: $used/$space"))

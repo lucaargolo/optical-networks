@@ -186,12 +186,12 @@ class Network private constructor(val state: NetworkState, var world: World, val
         return ((type == Type.COMPONENTS && controllerNetworks.size == 1 && getControllerNetwork()?.isValid() == true) || (type == Type.CONTROLLER && world.getBlockEntity(mainController) is ControllerBlockEntity)) && storedPower >= 128.0
     }
 
-    fun getBandwidthOverflow(): Double {
+    fun getBandwidthStats(): Pair<Double, Double> {
         var currentUsage = 0.0
         componentsMap.forEach { (block, _) -> currentUsage += (block as? CableConnectable)?.bandwidthUsage ?: 0.0 }
         val overflowPercentage = ((min(0.0, currentUsage - 1000.0)/100)*2)
-        if(overflowPercentage != 0.0) return 1/overflowPercentage
-        return 0.0
+        if(overflowPercentage != 0.0) return Pair(currentUsage, 1/overflowPercentage)
+        return Pair(currentUsage, 0.0)
     }
 
     fun addComponent(blockPos: BlockPos, block: Block) {

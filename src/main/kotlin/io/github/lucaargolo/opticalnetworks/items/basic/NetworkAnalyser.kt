@@ -27,6 +27,8 @@ class NetworkAnalyser(settings: Settings): Item(settings) {
                     if(network.type == Network.Type.CONTROLLER)
                         text.append(LiteralText("${Formatting.BLUE}Main Controller: ${Formatting.GOLD}(x: ${network.mainController.x}, y: ${network.mainController.y}, z: ${network.mainController.z})\n"))
                     text.append(LiteralText("${Formatting.BLUE}Components: ${Formatting.GOLD}${network.components.size}\n"))
+                    val pair = network.getBandwidthStats()
+                    text.append(LiteralText("${Formatting.BLUE}Bandwidth: ${Formatting.GOLD}${pair.first}/1000.0 (Penalties: ${pair.second})"))
                     text.append(LiteralText("${Formatting.BLUE}Controller Networks: ${Formatting.GOLD}${network.controllerNetworks.size}\n"))
                     network.controllerNetworks.forEach {
                         text.append(LiteralText("${Formatting.GRAY} - ${it.toString().substring(0, 8)}\n"))

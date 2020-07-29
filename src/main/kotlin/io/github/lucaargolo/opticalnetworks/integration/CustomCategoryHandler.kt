@@ -29,7 +29,7 @@ import net.minecraft.util.collection.DefaultedList
 @Suppress("UNCHECKED_CAST")
 class CustomCategoryHandler: DefaultCategoryHandler() {
 
-    override fun handle(context: AutoTransferHandler.Context): AutoTransferHandler.Result? {
+    override fun handle(context: AutoTransferHandler.Context): AutoTransferHandler.Result {
         if (context.recipe is TransferRecipeDisplay && context.container is CraftingTerminalScreenHandler) {
 
             val recipe = context.recipe as TransferRecipeDisplay
